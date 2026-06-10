@@ -1,75 +1,144 @@
 {% extends 'applications/base.html' %}
 {% block title %}Dashboard — UniTracker{% endblock %}
 {% block content %}
+
 <div class="page-header">
   <h1 class="page-title">Dashboard</h1>
-  <a href="{% url 'university_create' %}" class="btn btn-primary">+ Add university</a>
+  <div style="display:flex;gap:8px">
+    <a href="#" class="btn btn-outline btn-sm">&#9906; Filter</a>
+    <a href="{% url 'university_create' %}" class="btn btn-primary btn-sm">+ Add application</a>
+  </div>
 </div>
 
 <div class="stat-grid">
-  <div class="stat"><div class="stat-label">Total</div><div class="stat-value">{{ stats.total }}</div><div class="stat-sub">{{ stats.reach }} reach · {{ stats.match }} match · {{ stats.safety }} safety</div></div>
-  <div class="stat"><div class="stat-label">Submitted</div><div class="stat-value">{{ stats.submitted }}</div><div class="stat-sub">of {{ stats.total }} total</div></div>
-  <div class="stat"><div class="stat-label">Interviews</div><div class="stat-value" style="color:#0F6E56">{{ stats.interview }}</div><div class="stat-sub">active</div></div>
-  <div class="stat"><div class="stat-label">Accepted</div><div class="stat-value" style="color:#3B6D11">{{ stats.accepted }}</div><div class="stat-sub">offers received</div></div>
-  <div class="stat"><div class="stat-label">Due soon</div><div class="stat-value" {% if stats.due_soon %}style="color:#A32D2D"{% endif %}>{{ stats.due_soon }}</div><div class="stat-sub">within 30 days</div></div>
+  <div class="stat stat-purple">
+    <div class="stat-label">Total apps</div>
+    <div class="stat-value">{{ stats.total }}</div>
+    <div class="stat-sub">{{ stats.reach }} reach · {{ stats.match }} match · {{ stats.safety }} safety</div>
+  </div>
+  <div class="stat stat-teal">
+    <div class="stat-label">Interviews</div>
+    <div class="stat-value">{{ stats.interview }}</div>
+    <div class="stat-sub">active</div>
+  </div>
+  <div class="stat stat-amber">
+    <div class="stat-label">Deadlines</div>
+    <div class="stat-value">{{ stats.due_soon }}</div>
+    <div class="stat-sub">within 30 days</div>
+  </div>
+  <div class="stat stat-blue">
+    <div class="stat-label">Submitted</div>
+    <div class="stat-value">{{ stats.submitted }}</div>
+    <div class="stat-sub">of {{ stats.total }} total</div>
+  </div>
+  <div class="stat" style="background:linear-gradient(135deg,#639922,#3B6D11)">
+    <div class="stat-label">Accepted</div>
+    <div class="stat-value">{{ stats.accepted }}</div>
+    <div class="stat-sub">offers received</div>
+  </div>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
-  <div>
-    <h2 style="font-size:15px;font-weight:600;margin-bottom:1rem">Upcoming deadlines</h2>
-    {% if upcoming %}
-    <div class="card" style="padding:0;overflow:hidden">
-      {% for uni in upcoming %}
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #f0ede8">
-        <div>
-          <a href="{% url 'university_detail' uni.pk %}" style="font-weight:500;font-size:14px">{{ uni.name }}</a>
-          <div style="font-size:12px;color:#888">{{ uni.program }}</div>
-        </div>
-        <div style="text-align:right">
-          {% if uni.days_until_deadline is not None %}
-            {% if uni.days_until_deadline <= 7 %}<div class="days-urgent">{{ uni.days_until_deadline }}d</div>
-            {% elif uni.days_until_deadline <= 30 %}<div class="days-soon">{{ uni.days_until_deadline }}d</div>
-            {% else %}<div style="color:#888;font-size:13px">{{ uni.days_until_deadline }}d</div>{% endif %}
-          {% endif %}
-          <div style="font-size:12px;color:#aaa">{{ uni.deadline }}</div>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-    {% else %}<p style="color:#aaa;font-size:14px">No upcoming deadlines.</p>{% endif %}
+<!-- Recent applications -->
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+    <span style="font-size:15px;font-weight:600;color:#e8e6f0">Recent applications</span>
+    <a href="{% url 'university_list' %}" class="btn btn-outline btn-sm">View all</a>
   </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>University</th>
+          <th>Programme</th>
+          <th>Deadline</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for uni in upcoming %}
+        <tr>
+          <td>
+            <div style="font-weight:600;font-size:14px">
+              <a href="{% url 'university_detail' uni.pk %}" style="color:#e8e6f0">{{ uni.name }}</a>
+            </div>
+            <div style="font-size:12px;color:#666;margin-top:2px">{{ uni.country }} · <span class="badge badge-{{ uni.tier|lower }}">{{ uni.tier }}</span></div>
+          </td>
+          <td style="color:#bbb;font-size:14px">{{ uni.program }}</td>
+          <td>
+            {% if uni.days_until_deadline is not None %}
+              {% if uni.days_until_deadline <= 7 %}
+                <span style="color:#f09595;font-weight:600;font-size:13px">{{ uni.days_until_deadline }} days</span>
+              {% elif uni.days_until_deadline <= 30 %}
+                <span style="color:#FAC775;font-size:13px">{{ uni.days_until_deadline }} days</span>
+              {% else %}
+                <span style="color:#666;font-size:13px">{{ uni.days_until_deadline }} days</span>
+              {% endif %}
+            {% else %}
+              <span style="color:#555;font-size:13px">—</span>
+            {% endif %}
+          </td>
+          <td><span class="badge badge-{{ uni.status|lower }}">{{ uni.get_status_display }}</span></td>
+          <td>
+            <div style="display:flex;gap:6px;justify-content:flex-end">
+              <a href="{% url 'university_edit' uni.pk %}" class="btn btn-outline btn-sm" title="Edit">✏</a>
+              <form method="post" action="{% url 'university_delete' uni.pk %}" style="display:inline" onsubmit="return confirm('Delete {{ uni.name }}?')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm" title="Delete">🗑</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" style="text-align:center;padding:2.5rem;color:#555">
+            <div style="font-size:28px;margin-bottom:.5rem">📭</div>
+            <div style="font-size:14px">No applications yet. <a href="{% url 'university_create' %}">Add one</a></div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 
-  <div>
-    <h2 style="font-size:15px;font-weight:600;margin-bottom:1rem">Test scores</h2>
-    <div class="card">
-      {% if scores %}
-        {% if scores.sat_total %}
-        <div style="margin-bottom:1rem">
-          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="font-weight:500">SAT</span><span style="color:#534AB7;font-weight:600">{{ scores.sat_total }} / 1600</span></div>
-          <div class="score-bar"><div class="score-fill" style="width:{% widthratio scores.sat_total 1600 100 %}%"></div></div>
+<!-- Score summary -->
+{% if scores %}
+<div style="margin-top:1.5rem">
+  <h2 style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:.875rem">Test scores</h2>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.5rem">
+      {% if scores.sat_total %}
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px;margin-bottom:6px">
+          <span style="font-weight:600;color:#e8e6f0">SAT</span>
+          <span style="color:#9C97E8;font-weight:700;font-size:15px">{{ scores.sat_total }} <span style="font-size:12px;font-weight:400;color:#555">/ 1600</span></span>
         </div>
-        {% endif %}
-        {% if scores.ielts_overall %}
-        <div style="margin-bottom:1rem">
-          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="font-weight:500">IELTS</span><span style="color:#1D9E75;font-weight:600">{{ scores.ielts_overall }} / 9.0</span></div>
-          <div class="score-bar"><div class="score-fill score-fill-green" style="width:{% widthratio scores.ielts_overall 9 100 %}%"></div></div>
+        <div class="score-bar"><div class="score-fill" style="width:{% widthratio scores.sat_total 1600 100 %}%"></div></div>
+      </div>
+      {% endif %}
+      {% if scores.ielts_overall %}
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px;margin-bottom:6px">
+          <span style="font-weight:600;color:#e8e6f0">IELTS</span>
+          <span style="color:#1D9E75;font-weight:700;font-size:15px">{{ scores.ielts_overall }} <span style="font-size:12px;font-weight:400;color:#555">/ 9.0</span></span>
         </div>
-        {% endif %}
-        {% if scores.toefl_total %}
-        <div>
-          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="font-weight:500">TOEFL</span><span style="color:#378ADD;font-weight:600">{{ scores.toefl_total }} / 120</span></div>
-          <div class="score-bar"><div class="score-fill score-fill-blue" style="width:{% widthratio scores.toefl_total 120 100 %}%"></div></div>
+        <div class="score-bar"><div class="score-fill score-fill-green" style="width:{% widthratio scores.ielts_overall 9 100 %}%"></div></div>
+      </div>
+      {% endif %}
+      {% if scores.toefl_total %}
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px;margin-bottom:6px">
+          <span style="font-weight:600;color:#e8e6f0">TOEFL</span>
+          <span style="color:#378ADD;font-weight:700;font-size:15px">{{ scores.toefl_total }} <span style="font-size:12px;font-weight:400;color:#555">/ 120</span></span>
         </div>
-        {% endif %}
-        {% if not scores.sat_total and not scores.ielts_overall and not scores.toefl_total %}
-        <p style="color:#aaa;font-size:14px">No scores added yet.</p>
-        {% endif %}
-        <a href="{% url 'scores' %}" class="btn btn-outline btn-sm" style="margin-top:1rem">Edit scores</a>
-      {% else %}
-        <p style="color:#aaa;font-size:14px;margin-bottom:.75rem">No scores saved yet.</p>
-        <a href="{% url 'scores' %}" class="btn btn-outline btn-sm">Add scores</a>
+        <div class="score-bar"><div class="score-fill score-fill-blue" style="width:{% widthratio scores.toefl_total 120 100 %}%"></div></div>
+      </div>
       {% endif %}
     </div>
+    <a href="{% url 'scores' %}" class="btn btn-outline btn-sm" style="margin-top:1rem">Edit scores</a>
   </div>
 </div>
+{% endif %}
+
 {% endblock %}

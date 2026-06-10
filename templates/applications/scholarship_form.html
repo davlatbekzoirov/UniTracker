@@ -1,19 +1,84 @@
 {% extends 'applications/base.html' %}
 {% block title %}Add Scholarship — UniTracker{% endblock %}
 {% block content %}
-<div style="max-width:500px">
+
+<style>
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .anim-1 { animation: fade-up .35s ease both; }
+  .anim-2 { animation: fade-up .35s .1s ease both; }
+
+  /* Accent bar at top of card */
+  .form-card-accent {
+    height: 3px;
+    background: linear-gradient(90deg, var(--violet), var(--cyan));
+    border-radius: 16px 16px 0 0;
+    margin: -1px -1px 0 -1px;
+  }
+
+  /* Save button pulse on idle */
+  @keyframes btn-idle-pulse {
+    0%, 100% { box-shadow: 0 3px 14px rgba(124,111,247,.45); }
+    50%       { box-shadow: 0 6px 28px rgba(124,111,247,.7), 0 0 0 4px rgba(124,111,247,.1); }
+  }
+  .btn-save-scholarship {
+    animation: btn-idle-pulse 2.5s ease-in-out infinite;
+  }
+  .btn-save-scholarship:hover {
+    animation: none;
+    box-shadow: 0 8px 30px rgba(124,111,247,.65) !important;
+  }
+</style>
+
+<div style="max-width:520px" class="anim-1">
+
   <div class="page-header">
-    <h1 class="page-title">Add scholarship</h1>
-    <a href="{% url 'university_detail' uni.pk %}" class="btn btn-outline">← Back</a>
+    <div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--dim);margin-bottom:5px">Scholarships</div>
+      <h1 class="page-title">Add scholarship</h1>
+    </div>
+    <a href="{% url 'university_detail' uni.pk %}" class="btn btn-outline btn-sm" style="gap:6px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back
+    </a>
   </div>
-  <p style="color:#888;font-size:14px;margin-bottom:1rem">For {{ uni.name }}</p>
-  <div class="card">
-    <form method="post">{% csrf_token %}
-      {% for field in form %}
-      <div class="form-group"><label>{{ field.label }}</label>{{ field }}{% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}</div>
-      {% endfor %}
-      <button type="submit" class="btn btn-primary">Save scholarship</button>
-    </form>
+
+  <!-- University context pill -->
+  <div style="display:inline-flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:5px 14px 5px 8px;margin-bottom:1.25rem">
+    <span style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:11px">🎓</span>
+    <span style="font-size:12px;color:var(--muted)">For <span style="color:#fff;font-weight:600">{{ uni.name }}</span></span>
   </div>
+
+  <div class="card anim-2" style="padding:0;overflow:visible">
+    <div class="form-card-accent"></div>
+
+    <div style="padding:1.5rem">
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+          <label>{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+          {% endif %}
+        </div>
+        {% endfor %}
+
+        <div style="height:1px;background:var(--border);margin:1.25rem 0"></div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <a href="{% url 'university_detail' uni.pk %}" class="btn btn-outline btn-sm" style="color:var(--dim)">Cancel</a>
+          <button type="submit" class="btn btn-primary btn-save-scholarship">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Save scholarship
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 </div>
 {% endblock %}

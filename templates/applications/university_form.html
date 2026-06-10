@@ -2,62 +2,122 @@
 {% block title %}{{ action }} University — UniTracker{% endblock %}
 
 {% block content %}
-<div style="max-width:600px">
+<div style="max-width:640px">
+
   <div class="page-header">
-    <h1 class="page-title">{{ action }} university</h1>
-    <a href="{% url 'university_list' %}" class="btn btn-outline">← Back</a>
+    <div>
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#555;margin-bottom:6px">
+        Universities
+      </div>
+      <h1 class="page-title">{{ action }} university</h1>
+    </div>
+    <a href="{% url 'university_list' %}" class="btn btn-outline btn-sm" style="gap:6px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back
+    </a>
   </div>
 
-  <div class="card">
-    <form method="post" id="uni-form">
-      {% csrf_token %}
+  <div class="card" style="padding:0;overflow:visible">
 
-      {# Name field with autocomplete #}
-      <div class="form-group" style="position:relative">
-        <label for="id_name">University name *</label>
-        {{ form.name }}
-        <div id="ac-dropdown" style="
-          display:none; position:absolute; top:100%; left:0; right:0; z-index:50;
-          background:#fff; border:1px solid #d6d3cc; border-top:none;
-          border-radius:0 0 8px 8px; box-shadow:0 4px 12px rgba(0,0,0,.08);
-          max-height:280px; overflow-y:auto;
-        "></div>
-        {% if form.name.errors %}
-          <ul class="errorlist">{% for e in form.name.errors %}<li>{{ e }}</li>{% endfor %}</ul>
-        {% endif %}
-        <p style="font-size:12px;color:#aaa;margin-top:4px">
-          Start typing to search — country and website will fill in automatically.
-        </p>
+    <!-- Section: University identity -->
+    <div style="padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.06)">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:#444;margin-bottom:16px">University</div>
+
+      <form method="post" id="uni-form">
+        {% csrf_token %}
+
+        <!-- Name with autocomplete -->
+        <div class="form-group" style="position:relative;margin-bottom:0">
+          <label for="id_name">University name <span style="color:#7F77DD">*</span></label>
+          {{ form.name }}
+          <div id="ac-dropdown" style="
+            display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:50;
+            background:#1e1e1c;border:1px solid rgba(255,255,255,.12);
+            border-radius:10px;overflow:hidden;
+            box-shadow:0 8px 32px rgba(0,0,0,.5);
+            max-height:280px;overflow-y:auto;
+          "></div>
+          {% if form.name.errors %}
+            <ul class="errorlist">{% for e in form.name.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+          {% endif %}
+          <p style="font-size:11px;color:#444;margin-top:5px">Start typing to search — country and website fill automatically.</p>
+        </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group"><label>Country</label>{{ form.country }}</div>
-        <div class="form-group"><label>Website</label>{{ form.website }}</div>
+      <!-- Country + Website -->
+      <div style="padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.06)">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:#444;margin-bottom:16px">Location &amp; web</div>
+        <div class="form-row">
+          <div class="form-group" style="margin-bottom:0">
+            <label>Country</label>{{ form.country }}
+            {% if form.country.errors %}<ul class="errorlist">{% for e in form.country.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>Website</label>{{ form.website }}
+            {% if form.website.errors %}<ul class="errorlist">{% for e in form.website.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+        </div>
       </div>
-      <div class="form-row">
-        <div class="form-group"><label>Program</label>{{ form.program }}</div>
-        <div class="form-group"><label>Application type</label>{{ form.university_type }}</div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label>Status</label>{{ form.status }}</div>
-        <div class="form-group" style="max-width:200px"><label>Deadline</label>{{ form.deadline }}</div>
-      </div>
-      <div class="form-group"><label>Notes</label>{{ form.notes }}</div>
 
-      <div style="display:flex;gap:8px;margin-top:.5rem">
-        <button type="submit" class="btn btn-primary">{{ action }} university</button>
-        <a href="{% url 'university_list' %}" class="btn btn-outline">Cancel</a>
+      <!-- Program + Type -->
+      <div style="padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.06)">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:#444;margin-bottom:16px">Application</div>
+        <div class="form-row">
+          <div class="form-group" style="margin-bottom:0">
+            <label>Program</label>{{ form.program }}
+            {% if form.program.errors %}<ul class="errorlist">{% for e in form.program.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>Application type</label>{{ form.university_type }}
+            {% if form.university_type.errors %}<ul class="errorlist">{% for e in form.university_type.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+        </div>
       </div>
+
+      <!-- Status + Deadline -->
+      <div style="padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.06)">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:#444;margin-bottom:16px">Progress</div>
+        <div class="form-row">
+          <div class="form-group" style="margin-bottom:0">
+            <label>Status</label>{{ form.status }}
+            {% if form.status.errors %}<ul class="errorlist">{% for e in form.status.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>Deadline</label>{{ form.deadline }}
+            {% if form.deadline.errors %}<ul class="errorlist">{% for e in form.deadline.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div style="padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.06)">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:#444;margin-bottom:16px">Notes</div>
+        <div class="form-group" style="margin-bottom:0">
+          {{ form.notes }}
+          {% if form.notes.errors %}<ul class="errorlist">{% for e in form.notes.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div style="padding:16px 24px;display:flex;justify-content:space-between;align-items:center">
+        <a href="{% url 'university_list' %}" class="btn btn-outline btn-sm" style="color:#555">Cancel</a>
+        <button type="submit" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg>
+          {{ action }} university
+        </button>
+      </div>
+
     </form>
   </div>
+
 </div>
 
 <script>
 (function () {
-  const nameInput   = document.getElementById('id_name');
+  const nameInput    = document.getElementById('id_name');
   const countryInput = document.getElementById('id_country');
   const websiteInput = document.getElementById('id_website');
-  const dropdown    = document.getElementById('ac-dropdown');
+  const dropdown     = document.getElementById('ac-dropdown');
 
   if (!nameInput) return;
 
@@ -65,66 +125,49 @@
   let currentResults = [];
   let selectedIndex  = -1;
 
-  // ── fetch suggestions ──────────────────────────────────────────
   function fetchSuggestions(query) {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
       if (query.length < 2) { closeDropdown(); return; }
-
       try {
         const resp = await fetch(`{% url 'university_autocomplete' %}?q=${encodeURIComponent(query)}`);
         if (!resp.ok) return;
         currentResults = await resp.json();
         renderDropdown();
-      } catch (e) {
-        console.error('Autocomplete fetch failed:', e);
-      }
-    }, 280); // debounce 280 ms
+      } catch (e) { console.error('Autocomplete error:', e); }
+    }, 280);
   }
 
-  // ── render dropdown items ──────────────────────────────────────
   function renderDropdown() {
     if (!currentResults.length) { closeDropdown(); return; }
-
     dropdown.innerHTML = currentResults.map((item, i) => `
       <div
         class="ac-item"
         data-index="${i}"
-        style="
-          padding:10px 14px; cursor:pointer; font-size:14px;
-          border-bottom:1px solid #f0ede8; display:flex;
-          justify-content:space-between; align-items:center;
-        "
+        style="padding:11px 16px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center;transition:background .12s"
         onmousedown="event.preventDefault()"
         onclick="selectItem(${i})"
         onmouseenter="highlightItem(${i})"
+        onmouseleave="this.style.background=''"
       >
         <div>
-          <span style="font-weight:500">${item.name}</span>
-          ${item.website
-            ? `<span style="font-size:12px;color:#aaa;margin-left:8px">${item.website}</span>`
-            : ''}
+          <span style="font-weight:600;color:#e2e0d8">${item.name}</span>
+          ${item.website ? `<span style="font-size:11px;color:#555;margin-left:10px">${item.website}</span>` : ''}
         </div>
-        <span style="
-          font-size:11px; padding:2px 8px; border-radius:20px;
-          background:#EEEDFE; color:#3C3489; margin-left:12px; white-space:nowrap;
-        ">${item.country}</span>
+        <span style="font-size:11px;padding:2px 9px;border-radius:20px;background:rgba(83,74,183,.18);color:#AFA9EC;border:1px solid rgba(83,74,183,.25);margin-left:12px;white-space:nowrap">${item.country}</span>
       </div>
     `).join('');
-
     dropdown.style.display = 'block';
     selectedIndex = -1;
   }
 
-  // ── fill form fields when user picks a suggestion ──────────────
   window.selectItem = function (index) {
     const item = currentResults[index];
     if (!item) return;
     nameInput.value    = item.name;
-    countryInput.value = item.country;
-    websiteInput.value = item.website || '';
+    if (countryInput) countryInput.value = item.country;
+    if (websiteInput) websiteInput.value = item.website || '';
     closeDropdown();
-    // move focus to program field for fast keyboard flow
     const programField = document.getElementById('id_program');
     if (programField) programField.focus();
   };
@@ -132,7 +175,7 @@
   window.highlightItem = function (index) {
     selectedIndex = index;
     document.querySelectorAll('.ac-item').forEach((el, i) => {
-      el.style.background = i === index ? '#f5f4f1' : '';
+      el.style.background = i === index ? 'rgba(255,255,255,.04)' : '';
     });
   };
 
@@ -142,30 +185,18 @@
     selectedIndex  = -1;
   }
 
-  // ── keyboard navigation ────────────────────────────────────────
   nameInput.addEventListener('keydown', (e) => {
     const items = document.querySelectorAll('.ac-item');
     if (!items.length) return;
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
-      highlightItem(selectedIndex);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      selectedIndex = Math.max(selectedIndex - 1, 0);
-      highlightItem(selectedIndex);
-    } else if (e.key === 'Enter' && selectedIndex >= 0) {
-      e.preventDefault();
-      selectItem(selectedIndex);
-    } else if (e.key === 'Escape') {
-      closeDropdown();
-    }
+    if (e.key === 'ArrowDown') { e.preventDefault(); selectedIndex = Math.min(selectedIndex + 1, items.length - 1); highlightItem(selectedIndex); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); selectedIndex = Math.max(selectedIndex - 1, 0); highlightItem(selectedIndex); }
+    else if (e.key === 'Enter' && selectedIndex >= 0) { e.preventDefault(); selectItem(selectedIndex); }
+    else if (e.key === 'Escape') { closeDropdown(); }
   });
 
-  nameInput.addEventListener('input',  (e) => fetchSuggestions(e.target.value));
-  nameInput.addEventListener('focus',  (e) => { if (e.target.value.length >= 2) fetchSuggestions(e.target.value); });
-  document.addEventListener('click',   (e) => { if (!e.target.closest('#ac-dropdown') && e.target !== nameInput) closeDropdown(); });
+  nameInput.addEventListener('input', (e) => fetchSuggestions(e.target.value));
+  nameInput.addEventListener('focus', (e) => { if (e.target.value.length >= 2) fetchSuggestions(e.target.value); });
+  document.addEventListener('click', (e) => { if (!e.target.closest('#ac-dropdown') && e.target !== nameInput) closeDropdown(); });
 })();
 </script>
 {% endblock %}
