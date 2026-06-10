@@ -1,21 +1,75 @@
 {% extends 'applications/base.html' %}
 {% block title %}Scholarships — UniTracker{% endblock %}
 {% block content %}
+
 <div class="page-header">
   <h1 class="page-title">Scholarships</h1>
 </div>
+
 {% if scholarships %}
 <div class="card" style="padding:0;overflow:hidden">
-  <table><thead><tr><th>Scholarship</th><th>University</th><th>Amount</th><th>Deadline</th><th>Status</th></tr></thead>
-  <tbody>{% for s in scholarships %}<tr>
-    <td style="font-weight:500;font-size:14px">{{ s.name }}</td>
-    <td style="font-size:14px;color:#555"><a href="{% url 'university_detail' s.university.pk %}">{{ s.university.name }}</a></td>
-    <td style="font-size:14px">{% if s.amount %}{{ s.currency }} {{ s.amount }}{% else %}—{% endif %}</td>
-    <td style="font-size:13px;color:#555">{{ s.deadline|default:"—" }}</td>
-    <td><span class="badge {% if s.applied %}badge-accepted{% else %}badge-preparing{% endif %}">{% if s.applied %}Applied{% else %}Not applied{% endif %}</span></td>
-  </tr>{% endfor %}</tbody></table>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.06)">
+    <span style="font-size:13px;font-weight:600;color:#e2e0d8">All scholarships</span>
+    <span style="font-size:12px;color:#555;background:#222220;padding:3px 10px;border-radius:20px">{{ scholarships|length }} entr{% if scholarships|length == 1 %}y{% else %}ies{% endif %}</span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Scholarship</th>
+          <th>University</th>
+          <th>Amount</th>
+          <th>Deadline</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in scholarships %}
+        <tr>
+          <td style="font-weight:600;font-size:13px;color:#e2e0d8">{{ s.name }}</td>
+          <td>
+            <a href="{% url 'university_detail' s.university.pk %}" style="font-size:13px;color:#7F77DD;text-decoration:none">{{ s.university.name }}</a>
+          </td>
+          <td style="font-size:13px;font-weight:500;color:#e2e0d8">
+            {% if s.amount %}{{ s.currency }} {{ s.amount }}{% else %}<span style="color:#444">—</span>{% endif %}
+          </td>
+          <td>
+            {% if s.days_until_deadline is not None %}
+              {% if s.days_until_deadline <= 7 %}
+                <span style="color:#f09595;font-weight:600;font-size:12px">⚠ {{ s.days_until_deadline }} days</span>
+              {% elif s.days_until_deadline <= 30 %}
+                <span style="color:#FAC775;font-size:12px;font-weight:500">{{ s.days_until_deadline }} days</span>
+              {% else %}
+                <span style="color:#555;font-size:12px">{{ s.deadline }}</span>
+              {% endif %}
+            {% else %}
+              <span style="color:#444;font-size:12px">{{ s.deadline|default:"—" }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if s.applied %}
+              <span class="badge" style="background:rgba(29,158,117,.15);color:#5DCAA5;border:1px solid rgba(29,158,117,.2);font-size:11px;padding:4px 10px;border-radius:20px">&#9679; Applied</span>
+            {% else %}
+              <span class="badge" style="background:rgba(186,117,23,.15);color:#FAC775;border:1px solid rgba(186,117,23,.2);font-size:11px;padding:4px 10px;border-radius:20px">&#9679; Not applied</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
+
 {% else %}
-<div class="empty"><div class="empty-icon">🏆</div><p>No scholarships tracked. Open a university and add one.</p></div>
+<div style="text-align:center;padding:5rem 1rem">
+  <div style="width:56px;height:56px;background:#1e1e1c;border:1px solid rgba(255,255,255,.08);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+  </div>
+  <p style="font-size:15px;font-weight:600;color:#e2e0d8;margin-bottom:6px">No scholarships yet</p>
+  <p style="font-size:13px;color:#555">Open a university and add a scholarship to track it here.</p>
+</div>
 {% endif %}
+
 {% endblock %}
