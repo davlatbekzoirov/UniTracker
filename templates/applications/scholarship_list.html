@@ -1,0 +1,21 @@
+{% extends 'applications/base.html' %}
+{% block title %}Scholarships — UniTracker{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Scholarships</h1>
+</div>
+{% if scholarships %}
+<div class="card" style="padding:0;overflow:hidden">
+  <table><thead><tr><th>Scholarship</th><th>University</th><th>Amount</th><th>Deadline</th><th>Status</th></tr></thead>
+  <tbody>{% for s in scholarships %}<tr>
+    <td style="font-weight:500;font-size:14px">{{ s.name }}</td>
+    <td style="font-size:14px;color:#555"><a href="{% url 'university_detail' s.university.pk %}">{{ s.university.name }}</a></td>
+    <td style="font-size:14px">{% if s.amount %}{{ s.currency }} {{ s.amount }}{% else %}—{% endif %}</td>
+    <td style="font-size:13px;color:#555">{{ s.deadline|default:"—" }}</td>
+    <td><span class="badge {% if s.applied %}badge-accepted{% else %}badge-preparing{% endif %}">{% if s.applied %}Applied{% else %}Not applied{% endif %}</span></td>
+  </tr>{% endfor %}</tbody></table>
+</div>
+{% else %}
+<div class="empty"><div class="empty-icon">🏆</div><p>No scholarships tracked. Open a university and add one.</p></div>
+{% endif %}
+{% endblock %}

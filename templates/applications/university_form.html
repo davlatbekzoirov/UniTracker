@@ -1,0 +1,171 @@
+{% extends 'applications/base.html' %}
+{% block title %}{{ action }} University — UniTracker{% endblock %}
+
+{% block content %}
+<div style="max-width:600px">
+  <div class="page-header">
+    <h1 class="page-title">{{ action }} university</h1>
+    <a href="{% url 'university_list' %}" class="btn btn-outline">← Back</a>
+  </div>
+
+  <div class="card">
+    <form method="post" id="uni-form">
+      {% csrf_token %}
+
+      {# Name field with autocomplete #}
+      <div class="form-group" style="position:relative">
+        <label for="id_name">University name *</label>
+        {{ form.name }}
+        <div id="ac-dropdown" style="
+          display:none; position:absolute; top:100%; left:0; right:0; z-index:50;
+          background:#fff; border:1px solid #d6d3cc; border-top:none;
+          border-radius:0 0 8px 8px; box-shadow:0 4px 12px rgba(0,0,0,.08);
+          max-height:280px; overflow-y:auto;
+        "></div>
+        {% if form.name.errors %}
+          <ul class="errorlist">{% for e in form.name.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        {% endif %}
+        <p style="font-size:12px;color:#aaa;margin-top:4px">
+          Start typing to search — country and website will fill in automatically.
+        </p>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group"><label>Country</label>{{ form.country }}</div>
+        <div class="form-group"><label>Website</label>{{ form.website }}</div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Program</label>{{ form.program }}</div>
+        <div class="form-group"><label>Application type</label>{{ form.university_type }}</div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Status</label>{{ form.status }}</div>
+        <div class="form-group" style="max-width:200px"><label>Deadline</label>{{ form.deadline }}</div>
+      </div>
+      <div class="form-group"><label>Notes</label>{{ form.notes }}</div>
+
+      <div style="display:flex;gap:8px;margin-top:.5rem">
+        <button type="submit" class="btn btn-primary">{{ action }} university</button>
+        <a href="{% url 'university_list' %}" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+(function () {
+  const nameInput   = document.getElementById('id_name');
+  const countryInput = document.getElementById('id_country');
+  const websiteInput = document.getElementById('id_website');
+  const dropdown    = document.getElementById('ac-dropdown');
+
+  if (!nameInput) return;
+
+  let debounceTimer;
+  let currentResults = [];
+  let selectedIndex  = -1;
+
+  // ── fetch suggestions ──────────────────────────────────────────
+  function fetchSuggestions(query) {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(async () => {
+      if (query.length < 2) { closeDropdown(); return; }
+
+      try {
+        const resp = await fetch(`{% url 'university_autocomplete' %}?q=${encodeURIComponent(query)}`);
+        if (!resp.ok) return;
+        currentResults = await resp.json();
+        renderDropdown();
+      } catch (e) {
+        console.error('Autocomplete fetch failed:', e);
+      }
+    }, 280); // debounce 280 ms
+  }
+
+  // ── render dropdown items ──────────────────────────────────────
+  function renderDropdown() {
+    if (!currentResults.length) { closeDropdown(); return; }
+
+    dropdown.innerHTML = currentResults.map((item, i) => `
+      <div
+        class="ac-item"
+        data-index="${i}"
+        style="
+          padding:10px 14px; cursor:pointer; font-size:14px;
+          border-bottom:1px solid #f0ede8; display:flex;
+          justify-content:space-between; align-items:center;
+        "
+        onmousedown="event.preventDefault()"
+        onclick="selectItem(${i})"
+        onmouseenter="highlightItem(${i})"
+      >
+        <div>
+          <span style="font-weight:500">${item.name}</span>
+          ${item.website
+            ? `<span style="font-size:12px;color:#aaa;margin-left:8px">${item.website}</span>`
+            : ''}
+        </div>
+        <span style="
+          font-size:11px; padding:2px 8px; border-radius:20px;
+          background:#EEEDFE; color:#3C3489; margin-left:12px; white-space:nowrap;
+        ">${item.country}</span>
+      </div>
+    `).join('');
+
+    dropdown.style.display = 'block';
+    selectedIndex = -1;
+  }
+
+  // ── fill form fields when user picks a suggestion ──────────────
+  window.selectItem = function (index) {
+    const item = currentResults[index];
+    if (!item) return;
+    nameInput.value    = item.name;
+    countryInput.value = item.country;
+    websiteInput.value = item.website || '';
+    closeDropdown();
+    // move focus to program field for fast keyboard flow
+    const programField = document.getElementById('id_program');
+    if (programField) programField.focus();
+  };
+
+  window.highlightItem = function (index) {
+    selectedIndex = index;
+    document.querySelectorAll('.ac-item').forEach((el, i) => {
+      el.style.background = i === index ? '#f5f4f1' : '';
+    });
+  };
+
+  function closeDropdown() {
+    dropdown.style.display = 'none';
+    currentResults = [];
+    selectedIndex  = -1;
+  }
+
+  // ── keyboard navigation ────────────────────────────────────────
+  nameInput.addEventListener('keydown', (e) => {
+    const items = document.querySelectorAll('.ac-item');
+    if (!items.length) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+      highlightItem(selectedIndex);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIndex = Math.max(selectedIndex - 1, 0);
+      highlightItem(selectedIndex);
+    } else if (e.key === 'Enter' && selectedIndex >= 0) {
+      e.preventDefault();
+      selectItem(selectedIndex);
+    } else if (e.key === 'Escape') {
+      closeDropdown();
+    }
+  });
+
+  nameInput.addEventListener('input',  (e) => fetchSuggestions(e.target.value));
+  nameInput.addEventListener('focus',  (e) => { if (e.target.value.length >= 2) fetchSuggestions(e.target.value); });
+  document.addEventListener('click',   (e) => { if (!e.target.closest('#ac-dropdown') && e.target !== nameInput) closeDropdown(); });
+})();
+</script>
+{% endblock %}

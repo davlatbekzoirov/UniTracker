@@ -1,0 +1,62 @@
+{% extends 'applications/base.html' %}
+{% block title %}{{ uni.name }} — UniTracker{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ uni.name }}</h1>
+    <p style="color:#888;font-size:14px;margin-top:2px">{{ uni.program }} · {{ uni.country }}</p>
+  </div>
+  <div style="display:flex;gap:8px">
+    <a href="{% url 'university_edit' uni.pk %}" class="btn btn-outline">Edit</a>
+    <a href="{% url 'scholarship_create' uni.pk %}" class="btn btn-primary">+ Add scholarship</a>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1rem">
+      <span class="badge badge-{{ uni.university_type }}" style="font-size:13px">{{ uni.get_university_type_display }}</span>
+      <span class="badge badge-{{ uni.status }}" style="font-size:13px">{{ uni.get_status_display }}</span>
+    </div>
+    <table style="font-size:14px;width:100%">
+      <tr><td style="color:#888;padding:5px 0;width:40%">Deadline</td><td>{{ uni.deadline|default:"—" }}</td></tr>
+      <tr><td style="color:#888;padding:5px 0">Days left</td><td>{% if uni.days_until_deadline is not None %}{{ uni.days_until_deadline }} days{% else %}—{% endif %}</td></tr>
+      {% if uni.website %}<tr><td style="color:#888;padding:5px 0">Website</td><td><a href="{{ uni.website }}" target="_blank">{{ uni.website }}</a></td></tr>{% endif %}
+    </table>
+    {% if uni.notes %}<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #f0ede8;font-size:14px;color:#555">{{ uni.notes }}</div>{% endif %}
+  </div>
+
+  <div>
+    <h2 style="font-size:15px;font-weight:600;margin-bottom:.75rem">Scholarships</h2>
+    {% if uni.scholarships.all %}
+    {% for s in uni.scholarships.all %}
+    <div class="card" style="margin-bottom:.75rem">
+      <div style="display:flex;justify-content:space-between">
+        <strong style="font-size:14px">{{ s.name }}</strong>
+        <span class="badge {% if s.applied %}badge-accepted{% else %}badge-preparing{% endif %}">{% if s.applied %}Applied{% else %}Not applied{% endif %}</span>
+      </div>
+      {% if s.amount %}<div style="font-size:14px;color:#534AB7;margin-top:4px">{{ s.currency }} {{ s.amount }}</div>{% endif %}
+      {% if s.deadline %}<div style="font-size:12px;color:#888;margin-top:2px">Deadline: {{ s.deadline }}</div>{% endif %}
+    </div>
+    {% endfor %}
+    {% else %}<p style="color:#aaa;font-size:14px">No scholarships tracked yet.</p>{% endif %}
+  </div>
+</div>
+
+<div style="margin-top:1.5rem">
+  <h2 style="font-size:15px;font-weight:600;margin-bottom:.75rem">Documents for this university</h2>
+  {% with docs=uni.documents.all %}
+  {% if docs %}
+  <div class="card" style="padding:0;overflow:hidden">
+    <table><thead><tr><th>Name</th><th>Type</th><th>Uploaded</th><th>File</th></tr></thead>
+    <tbody>{% for d in docs %}<tr>
+      <td style="font-size:14px">{{ d.name }}</td>
+      <td><span class="badge badge-submitted">{{ d.get_doc_type_display }}</span></td>
+      <td style="font-size:13px;color:#888">{{ d.uploaded_at|date:"M d, Y" }}</td>
+      <td><a href="{{ d.file.url }}" class="btn btn-outline btn-sm" target="_blank">Download</a></td>
+    </tr>{% endfor %}</tbody></table>
+  </div>
+  {% else %}<p style="color:#aaa;font-size:14px">No documents linked. <a href="{% url 'documents' %}">Upload one.</a></p>{% endif %}
+  {% endwith %}
+</div>
+{% endblock %}

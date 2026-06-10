@@ -1,0 +1,38 @@
+{% extends 'applications/base.html' %}
+{% block title %}Documents — UniTracker{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Documents</h1>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1.5fr;gap:1.5rem;align-items:start">
+  <div>
+    <h2 style="font-size:15px;font-weight:600;margin-bottom:.75rem">Upload document</h2>
+    <div class="card">
+      <form method="post" enctype="multipart/form-data">{% csrf_token %}
+        {% for field in form %}
+        <div class="form-group"><label>{{ field.label }}</label>{{ field }}{% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}</div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">Upload</button>
+      </form>
+    </div>
+  </div>
+  <div>
+    <h2 style="font-size:15px;font-weight:600;margin-bottom:.75rem">Your documents</h2>
+    {% if docs %}
+    <div class="card" style="padding:0;overflow:hidden">
+      <table><thead><tr><th>Name</th><th>Type</th><th>University</th><th>Date</th><th></th></tr></thead>
+      <tbody>{% for d in docs %}<tr>
+        <td style="font-weight:500;font-size:14px">{{ d.name }}</td>
+        <td><span class="badge badge-submitted" style="font-size:11px">{{ d.get_doc_type_display }}</span></td>
+        <td style="font-size:13px;color:#888">{{ d.university.name|default:"General" }}</td>
+        <td style="font-size:12px;color:#aaa">{{ d.uploaded_at|date:"M d" }}</td>
+        <td style="white-space:nowrap">
+          <a href="{{ d.file.url }}" class="btn btn-outline btn-sm" target="_blank">↓</a>
+          <form method="post" action="{% url 'document_delete' d.pk %}" style="display:inline" onsubmit="return confirm('Delete?')">{% csrf_token %}<button type="submit" class="btn btn-danger btn-sm">✕</button></form>
+        </td>
+      </tr>{% endfor %}</tbody></table>
+    </div>
+    {% else %}<div class="empty"><div class="empty-icon">📄</div><p>No documents yet.</p></div>{% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'applications/base.html' %}
+{% block title %}{% if mode == 'login' %}Sign In{% else %}Create Account{% endif %} — UniTracker{% endblock %}
+{% block content %}
+<div style="max-width:400px;margin:3rem auto">
+  <div style="text-align:center;margin-bottom:2rem">
+    <div style="font-size:36px;margin-bottom:.5rem">🎓</div>
+    <h1 style="font-size:22px;font-weight:600">{% if mode == 'login' %}Welcome back{% else %}Create your account{% endif %}</h1>
+    <p style="color:#888;font-size:14px;margin-top:4px">Track every application in one place</p>
+  </div>
+  <div class="card">
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-group">
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+      {% endfor %}
+      {% if form.non_field_errors %}<div style="color:#A32D2D;font-size:13px;margin-bottom:.5rem">{{ form.non_field_errors }}</div>{% endif %}
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:.5rem">
+        {% if mode == 'login' %}Sign in{% else %}Create account{% endif %}
+      </button>
+    </form>
+  </div>
+  <p style="text-align:center;font-size:14px;color:#888;margin-top:1rem">
+    {% if mode == 'login' %}No account? <a href="{% url 'register' %}">Register</a>
+    {% else %}Have an account? <a href="{% url 'login' %}">Sign in</a>{% endif %}
+  </p>
+</div>
+{% endblock %}

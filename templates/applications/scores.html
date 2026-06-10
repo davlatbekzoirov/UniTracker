@@ -1,0 +1,47 @@
+{% extends 'applications/base.html' %}
+{% block title %}Test Scores — UniTracker{% endblock %}
+{% block content %}
+<div style="max-width:600px">
+  <h1 class="page-title" style="margin-bottom:1.5rem">Test scores</h1>
+  <div class="card">
+    <form method="post">{% csrf_token %}
+      <div class="form-section">
+        <div class="form-section-title">SAT</div>
+        <div class="form-row">
+          <div class="form-group"><label>{{ form.sat_reading.label }}</label>{{ form.sat_reading }}</div>
+          <div class="form-group"><label>{{ form.sat_math.label }}</label>{{ form.sat_math }}</div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">IELTS</div>
+        <div class="form-row">
+          <div class="form-group"><label>Overall Band</label>{{ form.ielts_overall }}</div>
+          <div class="form-group"><label>Listening</label>{{ form.ielts_listening }}</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Reading</label>{{ form.ielts_reading }}</div>
+          <div class="form-group"><label>Writing</label>{{ form.ielts_writing }}</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Speaking</label>{{ form.ielts_speaking }}</div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">TOEFL iBT</div>
+        <div class="form-row">
+          <div class="form-group"><label>Total Score</label>{{ form.toefl_total }}</div>
+          <div class="form-group"><label>Reading</label>{{ form.toefl_reading }}</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Listening</label>{{ form.toefl_listening }}</div>
+          <div class="form-group"><label>Speaking</label>{{ form.toefl_speaking }}</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Writing</label>{{ form.toefl_writing }}</div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Save scores</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

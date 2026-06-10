@@ -1,0 +1,15 @@
+{% extends 'applications/base.html' %}
+{% block title %}Confirm Delete{% endblock %}
+{% block content %}
+<div style="max-width:400px;margin:3rem auto">
+  <div class="card" style="text-align:center">
+    <div style="font-size:36px;margin-bottom:1rem">⚠️</div>
+    <h2 style="font-size:18px;margin-bottom:.5rem">Remove {{ obj }}?</h2>
+    <p style="color:#888;font-size:14px;margin-bottom:1.5rem">This will also delete all documents and scholarships linked to it.</p>
+    <form method="post" style="display:flex;gap:8px;justify-content:center">{% csrf_token %}
+      <button type="submit" class="btn btn-danger">Yes, remove</button>
+      <a href="{% url 'university_list' %}" class="btn btn-outline">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,10 @@
+Django>=4.2,<5.0
+Pillow>=10.0
+
+celery>=5.3
+redis>=5.0                   
+
+django-celery-beat>=2.6
+
+requests>=2.31
+beautifulsoup4>=4.12

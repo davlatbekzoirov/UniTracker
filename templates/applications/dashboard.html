@@ -1,0 +1,75 @@
+{% extends 'applications/base.html' %}
+{% block title %}Dashboard — UniTracker{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Dashboard</h1>
+  <a href="{% url 'university_create' %}" class="btn btn-primary">+ Add university</a>
+</div>
+
+<div class="stat-grid">
+  <div class="stat"><div class="stat-label">Total</div><div class="stat-value">{{ stats.total }}</div><div class="stat-sub">{{ stats.reach }} reach · {{ stats.match }} match · {{ stats.safety }} safety</div></div>
+  <div class="stat"><div class="stat-label">Submitted</div><div class="stat-value">{{ stats.submitted }}</div><div class="stat-sub">of {{ stats.total }} total</div></div>
+  <div class="stat"><div class="stat-label">Interviews</div><div class="stat-value" style="color:#0F6E56">{{ stats.interview }}</div><div class="stat-sub">active</div></div>
+  <div class="stat"><div class="stat-label">Accepted</div><div class="stat-value" style="color:#3B6D11">{{ stats.accepted }}</div><div class="stat-sub">offers received</div></div>
+  <div class="stat"><div class="stat-label">Due soon</div><div class="stat-value" {% if stats.due_soon %}style="color:#A32D2D"{% endif %}>{{ stats.due_soon }}</div><div class="stat-sub">within 30 days</div></div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+  <div>
+    <h2 style="font-size:15px;font-weight:600;margin-bottom:1rem">Upcoming deadlines</h2>
+    {% if upcoming %}
+    <div class="card" style="padding:0;overflow:hidden">
+      {% for uni in upcoming %}
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #f0ede8">
+        <div>
+          <a href="{% url 'university_detail' uni.pk %}" style="font-weight:500;font-size:14px">{{ uni.name }}</a>
+          <div style="font-size:12px;color:#888">{{ uni.program }}</div>
+        </div>
+        <div style="text-align:right">
+          {% if uni.days_until_deadline is not None %}
+            {% if uni.days_until_deadline <= 7 %}<div class="days-urgent">{{ uni.days_until_deadline }}d</div>
+            {% elif uni.days_until_deadline <= 30 %}<div class="days-soon">{{ uni.days_until_deadline }}d</div>
+            {% else %}<div style="color:#888;font-size:13px">{{ uni.days_until_deadline }}d</div>{% endif %}
+          {% endif %}
+          <div style="font-size:12px;color:#aaa">{{ uni.deadline }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}<p style="color:#aaa;font-size:14px">No upcoming deadlines.</p>{% endif %}
+  </div>
+
+  <div>
+    <h2 style="font-size:15px;font-weight:600;margin-bottom:1rem">Test scores</h2>
+    <div class="card">
+      {% if scores %}
+        {% if scores.sat_total %}
+        <div style="margin-bottom:1rem">
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="font-weight:500">SAT</span><span style="color:#534AB7;font-weight:600">{{ scores.sat_total }} / 1600</span></div>
+          <div class="score-bar"><div class="score-fill" style="width:{% widthratio scores.sat_total 1600 100 %}%"></div></div>
+        </div>
+        {% endif %}
+        {% if scores.ielts_overall %}
+        <div style="margin-bottom:1rem">
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="font-weight:500">IELTS</span><span style="color:#1D9E75;font-weight:600">{{ scores.ielts_overall }} / 9.0</span></div>
+          <div class="score-bar"><div class="score-fill score-fill-green" style="width:{% widthratio scores.ielts_overall 9 100 %}%"></div></div>
+        </div>
+        {% endif %}
+        {% if scores.toefl_total %}
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="font-weight:500">TOEFL</span><span style="color:#378ADD;font-weight:600">{{ scores.toefl_total }} / 120</span></div>
+          <div class="score-bar"><div class="score-fill score-fill-blue" style="width:{% widthratio scores.toefl_total 120 100 %}%"></div></div>
+        </div>
+        {% endif %}
+        {% if not scores.sat_total and not scores.ielts_overall and not scores.toefl_total %}
+        <p style="color:#aaa;font-size:14px">No scores added yet.</p>
+        {% endif %}
+        <a href="{% url 'scores' %}" class="btn btn-outline btn-sm" style="margin-top:1rem">Edit scores</a>
+      {% else %}
+        <p style="color:#aaa;font-size:14px;margin-bottom:.75rem">No scores saved yet.</p>
+        <a href="{% url 'scores' %}" class="btn btn-outline btn-sm">Add scores</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
