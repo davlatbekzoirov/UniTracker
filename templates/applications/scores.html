@@ -1,47 +1,138 @@
 {% extends 'applications/base.html' %}
 {% block title %}Test Scores — UniTracker{% endblock %}
+
 {% block content %}
-<div style="max-width:600px">
-  <h1 class="page-title" style="margin-bottom:1.5rem">Test scores</h1>
-  <div class="card">
-    <form method="post">{% csrf_token %}
-      <div class="form-section">
-        <div class="form-section-title">SAT</div>
-        <div class="form-row">
-          <div class="form-group"><label>{{ form.sat_reading.label }}</label>{{ form.sat_reading }}</div>
-          <div class="form-group"><label>{{ form.sat_math.label }}</label>{{ form.sat_math }}</div>
-        </div>
-      </div>
-      <div class="form-section">
-        <div class="form-section-title">IELTS</div>
-        <div class="form-row">
-          <div class="form-group"><label>Overall Band</label>{{ form.ielts_overall }}</div>
-          <div class="form-group"><label>Listening</label>{{ form.ielts_listening }}</div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>Reading</label>{{ form.ielts_reading }}</div>
-          <div class="form-group"><label>Writing</label>{{ form.ielts_writing }}</div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>Speaking</label>{{ form.ielts_speaking }}</div>
-        </div>
-      </div>
-      <div class="form-section">
-        <div class="form-section-title">TOEFL iBT</div>
-        <div class="form-row">
-          <div class="form-group"><label>Total Score</label>{{ form.toefl_total }}</div>
-          <div class="form-group"><label>Reading</label>{{ form.toefl_reading }}</div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>Listening</label>{{ form.toefl_listening }}</div>
-          <div class="form-group"><label>Speaking</label>{{ form.toefl_speaking }}</div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>Writing</label>{{ form.toefl_writing }}</div>
-        </div>
-      </div>
-      <button type="submit" class="btn btn-primary">Save scores</button>
-    </form>
+
+<div style="max-width:900px;margin:0 auto">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Test Scores</h1>
+      <p style="color:#aaa;margin-top:6px">
+        Manage your SAT, IELTS, and TOEFL results in one place.
+      </p>
+    </div>
   </div>
+
+  <form method="post">
+    {% csrf_token %}
+
+
+<div class="card" style="margin-bottom:1.5rem;border-top:4px solid #7F77DD">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
+    <div style="font-size:24px"></div>
+    <div>
+      <h2 style="font-size:18px;color:#fff">SAT Scores</h2>
+      <p style="font-size:13px;color:#999">Reading & Writing and Math sections</p>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>{{ form.sat_reading.label }}</label>
+      {{ form.sat_reading }}
+    </div>
+
+    <div class="form-group">
+      <label>{{ form.sat_math.label }}</label>
+      {{ form.sat_math }}
+    </div>
+  </div>
+</div>
+
+<!-- IELTS -->
+<div class="card" style="margin-bottom:1.5rem;border-top:4px solid #1D9E75">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
+    <div style="font-size:24px"></div>
+    <div>
+      <h2 style="font-size:18px;color:#fff">IELTS</h2>
+      <p style="font-size:13px;color:#999">English proficiency examination</p>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Overall Band</label>
+      {{ form.ielts_overall }}
+    </div>
+
+    <div class="form-group">
+      <label>Listening</label>
+      {{ form.ielts_listening }}
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Reading</label>
+      {{ form.ielts_reading }}
+    </div>
+
+    <div class="form-group">
+      <label>Writing</label>
+      {{ form.ielts_writing }}
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Speaking</label>
+      {{ form.ielts_speaking }}
+    </div>
+  </div>
+</div>
+
+<!-- TOEFL -->
+<div class="card" style="margin-bottom:1.5rem;border-top:4px solid #378ADD">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
+    <div style="font-size:24px"></div>
+    <div>
+      <h2 style="font-size:18px;color:#fff">TOEFL iBT</h2>
+      <p style="font-size:13px;color:#999">Internet-based English proficiency test</p>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Total Score</label>
+      {{ form.toefl_total }}
+    </div>
+
+    <div class="form-group">
+      <label>Reading</label>
+      {{ form.toefl_reading }}
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Listening</label>
+      {{ form.toefl_listening }}
+    </div>
+
+    <div class="form-group">
+      <label>Speaking</label>
+      {{ form.toefl_speaking }}
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Writing</label>
+      {{ form.toefl_writing }}
+    </div>
+  </div>
+</div>
+
+<!-- Save Button -->
+<div style="display:flex;justify-content:flex-end">
+  <button type="submit"
+          class="btn btn-primary"
+          style="padding:12px 28px;font-size:15px;font-weight:600">
+    🚀 Save Scores
+  </button>
+</div>
+
+  </form>
 </div>
 {% endblock %}
