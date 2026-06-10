@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-
+from django.core.exceptions import ValidationError
 
 class TestScore(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='test_scores')
@@ -74,9 +74,25 @@ class Scholarship(models.Model):
         return f"{self.name} – {self.university.name}"
 
 
+def validate_pdf_and_size(file):
+    """
+    Ensures the file is a true PDF and is under 5MB at the database layer.
+    """
+    max_size = 5 * 1024 * 1024 
+    if file.size > max_size:
+        raise ValidationError("File size cannot exceed 5MB.")
+        
+    if not file.name.lower().endswith('.pdf'):
+        raise ValidationError("Only PDF documents are allowed.")
+        
+    file.seek(0)
+    header = file.read(4)
+    if header != b'%PDF':
+        raise ValidationError("Invalid file format. This file is not a valid PDF.")
+    return file
+
 def document_upload_path(instance, filename):
     return f'documents/{instance.user.id}/{filename}'
-
 
 class Document(models.Model):
     DOC_TYPES = [
@@ -89,7 +105,8 @@ class Document(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='documents')
     doc_type = models.CharField(max_length=20, choices=DOC_TYPES)
     name = models.CharField(max_length=200)
-    file = models.FileField(upload_to=document_upload_path)
+    
+    file = models.FileField(upload_to=document_upload_path, validators=[validate_pdf_and_size])
     uploaded_at = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(blank=True)
 

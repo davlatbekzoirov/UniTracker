@@ -4,10 +4,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Sum, Q, Case, When, Value, CharField
 from .models import University, Scholarship, Document, TestScore
 from .forms import RegisterForm, UniversityForm, ScholarshipForm, DocumentForm, TestScoreForm
-
+from decimal import Decimal
 
 def register_view(request):
     if request.user.is_authenticated:
@@ -42,6 +42,24 @@ def dashboard(request):
     universities = University.objects.filter(user=request.user)
     today = timezone.now().date()
     upcoming = universities.filter(deadline__gte=today).order_by('deadline')[:5]
+    
+    scholarships = Scholarship.objects.filter(university__user=request.user)
+    
+    EXCHANGE_RATES = {'USD': 1.0, 'EUR': 1.08, 'GBP': 1.27} 
+    
+    total_applied_usd = Decimal('0.00')
+    total_awarded_usd = Decimal('0.00')
+    
+    for s in scholarships:
+        if s.amount:
+            rate = Decimal(str(EXCHANGE_RATES.get(s.currency, 1.0)))
+            amount_in_usd = s.amount * rate 
+            
+            if s.applied:
+                total_applied_usd += amount_in_usd
+            if s.university.status == 'accepted':
+                total_awarded_usd += amount_in_usd
+
     stats = {
         'total': universities.count(),
         'submitted': universities.filter(status__in=['submitted','interview','accepted','deferred']).count(),
@@ -51,11 +69,15 @@ def dashboard(request):
         'reach': universities.filter(university_type='reach').count(),
         'match': universities.filter(university_type='match').count(),
         'safety': universities.filter(university_type='safety').count(),
+        'total_applied_usd': round(total_applied_usd, 2),
+        'total_awarded_usd': round(total_awarded_usd, 2),
     }
+    
     try:
         scores = request.user.test_scores
     except TestScore.DoesNotExist:
         scores = None
+        
     return render(request, 'applications/dashboard.html', {
         'universities': universities, 'upcoming': upcoming,
         'stats': stats, 'scores': scores,
@@ -65,18 +87,32 @@ def dashboard(request):
 @login_required
 def university_list(request):
     qs = University.objects.filter(user=request.user)
+    
+    try:
+        user_scores = request.user.test_scores
+        user_sat = user_scores.sat_total or 0
+        user_ielts = user_scores.ielts_overall or 0
+    except TestScore.DoesNotExist:
+        user_sat = 0
+        user_ielts = 0
+
+    qs = qs.annotate(
+        admission_chance=Case(
+            When(university_type='safety', then=Value('High Probability')),
+            When(Q(university_type='match') & (Q(id__isnull=False) if user_sat >= 1400 or user_ielts >= 7.5 else Q(id__isnull=True)), then=Value('High Probability')),
+            When(university_type='reach', then=Value('Reach / Competitive')),
+            default=Value('Standard Match'),
+            output_field=CharField(),
+        )
+    )
+
     status_filter = request.GET.get('status', '')
-    type_filter = request.GET.get('type', '')
-    q = request.GET.get('q', '')
     if status_filter:
         qs = qs.filter(status=status_filter)
-    if type_filter:
-        qs = qs.filter(university_type=type_filter)
-    if q:
-        qs = qs.filter(Q(name__icontains=q) | Q(country__icontains=q) | Q(program__icontains=q))
+        
     return render(request, 'applications/university_list.html', {
-        'universities': qs, 'status_filter': status_filter,
-        'type_filter': type_filter, 'q': q,
+        'universities': qs, 
+        'status_filter': status_filter,
     })
 
 

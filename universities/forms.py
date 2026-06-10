@@ -1,8 +1,26 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from .models import University, Scholarship, Document, TestScore
 
+def validate_pdf_and_size(file):
+    """
+    Validates that a file is a PDF and does not exceed 5MB.
+    """
+    max_size = 5 * 1024 * 1024 
+    if file.size > max_size:
+        raise ValidationError("File size cannot exceed 5MB.")
+        
+    if not file.name.lower().endswith('.pdf'):
+        raise ValidationError("Only PDF documents are allowed.")
+        
+    file.seek(0)
+    header = file.read(4)
+    if header != b'%PDF':
+        raise ValidationError("Invalid file format. The file is corrupted or not a true PDF.")
+    
+    return file
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -39,6 +57,8 @@ class DocumentForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['university'].queryset = University.objects.filter(user=user)
         self.fields['university'].required = False
+        
+        self.fields['file'].validators.append(validate_pdf_and_size)
 
 
 class TestScoreForm(forms.ModelForm):

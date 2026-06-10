@@ -22,7 +22,7 @@
   <div class="table-wrap">
   <table>
     <thead><tr>
-      <th>University</th><th>Program</th><th>Type</th><th>Status</th><th>Deadline</th><th>Days left</th><th></th>
+      <th>University</th><th>Program</th><th>Type</th><th>Admission Chance</th><th>Status</th><th>Deadline</th><th>Days left</th><th></th>
     </tr></thead>
     <tbody>
     {% for uni in universities %}
@@ -30,6 +30,17 @@
       <td><a href="{% url 'university_detail' uni.pk %}" style="font-weight:500">{{ uni.name }}</a><br><small style="color:#888">{{ uni.country }}</small></td>
       <td style="color:#555">{{ uni.program }}</td>
       <td><span class="badge badge-{{ uni.university_type }}">{{ uni.get_university_type_display }}</span></td>
+      
+      <td>
+        {% if uni.admission_chance == "High Probability" %}
+          <span class="badge" style="background-color: #d1e7dd; color: #0f5132;">{{ uni.admission_chance }}</span>
+        {% elif uni.admission_chance == "Reach / Competitive" %}
+          <span class="badge" style="background-color: #f8d7da; color: #842029;">{{ uni.admission_chance }}</span>
+        {% else %}
+          <span class="badge" style="background-color: #e2e3e5; color: #41464b;">{{ uni.admission_chance }}</span>
+        {% endif %}
+      </td>
+
       <td><span class="badge badge-{{ uni.status }}">{{ uni.get_status_display }}</span></td>
       <td style="font-size:13px;color:#555">{{ uni.deadline|default:"—" }}</td>
       <td>{% if uni.days_until_deadline is not None %}
@@ -44,7 +55,7 @@
       </td>
     </tr>
     {% endfor %}
-    </tbody>
+    <tbody>
   </table>
   </div>
 </div>
