@@ -9,9 +9,9 @@ env = environ.Env(
 BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
-SECRET_KEY = env('SECRET_KEY')
-DEBUG = env('DEBUG')
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
+SECRET_KEY = 'django-insecure-change-this-in-production-use-env-var'
+DEBUG = True
+ALLOWED_HOSTS = ['127.0.0.1','localhost','.onrender.com']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
