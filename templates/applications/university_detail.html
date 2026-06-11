@@ -143,6 +143,135 @@
   </div>
 </div>
 
+<div style="margin-bottom: 2.5rem;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:12px;">
+    <h2 style="font-size:11px; font-weight:500; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; display:flex; align-items:center; gap:8px; margin:0;">
+      <span style="width:7px;height:7px;background:#00ff87;border-radius:50%;flex-shrink:0;"></span>
+      Application milestone checklist
+    </h2>
+    <form action="{% url 'task_regenerate' uni.pk %}" method="POST" style="margin:0;">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-outline btn-sm">↺ Refresh checklist</button>
+    </form>
+  </div>
+
+  {% if tasks %}
+    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-glow); border-radius:16px; padding:1rem 1.25rem; margin-bottom:1rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:13px;">
+        <span style="color:var(--text-muted);">Task completion</span>
+        <span id="prog-count" style="color:#00ff87; font-weight:600;">{{ task_done_count }} / {{ task_total_count }} done</span>
+      </div>
+      <div style="width:100%; height:6px; background:rgba(255,255,255,0.06); border-radius:99px; overflow:hidden;">
+        <div id="prog-bar" style="height:100%; background:linear-gradient(90deg,#00f2fe,#00ff87); border-radius:99px; width:{% if task_total_count %}{% widthratio task_done_count task_total_count 100 %}{% else %}0{% endif %}%;; transition:width 0.4s ease;"></div>
+      </div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px;" id="cl-list">
+      {% for task in tasks %}
+      <div class="cl-item {% if task.is_done %}cl-done{% elif task.status == 'in_progress' %}cl-inprog{% endif %}" data-task-id="{{ task.pk }}"
+        style="background:{% if task.is_done %}rgba(0,255,135,0.04){% else %}var(--bg-card){% endif %}; border:1px solid {% if task.is_done %}rgba(0,255,135,0.2){% elif task.status == 'in_progress' %}rgba(249,212,35,0.25){% else %}var(--border-glow){% endif %}; border-radius:14px; padding:14px 16px; transition:all 0.2s;">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:200px;">
+
+            <form action="{% url 'task_toggle' task.pk %}" method="POST" class="js-toggle-form" style="margin:0;">
+              {% csrf_token %}
+              <button type="submit" class="cl-toggle-btn {% if task.is_done %}state-done{% elif task.status == 'in_progress' %}state-inprog{% else %}state-pending{% endif %}"
+                style="width:28px;height:28px;border-radius:8px;border:1px solid;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:all 0.15s;flex-shrink:0;
+                {% if task.is_done %}background:rgba(0,255,135,0.12);border-color:rgba(0,255,135,0.35);color:#00ff87;
+                {% elif task.status == 'in_progress' %}background:rgba(249,212,35,0.12);border-color:rgba(249,212,35,0.35);color:#f9d423;
+                {% else %}background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.12);color:rgba(255,255,255,0.25);{% endif %}">
+                {% if task.is_done %}✓{% elif task.status == 'in_progress' %}–{% else %}○{% endif %}
+              </button>
+            </form>
+
+            <div>
+              <span class="cl-task-title" style="font-size:14px; font-weight:600; color:{% if task.is_done %}var(--text-muted){% else %}#fff{% endif %}; text-decoration:{% if task.is_done %}line-through{% else %}none{% endif %}; transition:all 0.2s;">
+                {{ task.title }}
+              </span>
+              <div style="display:flex; gap:8px; align-items:center; margin-top:3px; flex-wrap:wrap;">
+                <span style="font-size:11px; color:var(--text-muted);">{{ task.get_task_type_display }}</span>
+                {% if task.due_date %}
+                <span style="font-size:11px; color:{% if task.due_date < today and not task.is_done %}#ff4d6d{% else %}var(--text-muted){% endif %};">
+                  · Due {{ task.due_date }}
+                </span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="cl-badge" style="font-size:11px; padding:3px 10px; border-radius:99px; font-weight:500; border:1px solid;
+              {% if task.is_done %}background:rgba(0,255,135,0.08);color:#00ff87;border-color:rgba(0,255,135,0.25);
+              {% elif task.status == 'in_progress' %}background:rgba(249,212,35,0.08);color:#f9d423;border-color:rgba(249,212,35,0.25);
+              {% else %}background:rgba(255,255,255,0.04);color:var(--text-muted);border-color:rgba(255,255,255,0.1);{% endif %}">
+              {{ task.get_status_display }}
+            </span>
+
+            <form action="{% url 'task_delete' task.pk %}" method="POST" style="margin:0;" onsubmit="return confirm('Remove this milestone?');">
+              {% csrf_token %}
+              <button type="submit" style="background:none;border:none;color:rgba(255,255,255,0.18);cursor:pointer;padding:4px 6px;border-radius:6px;font-size:14px;transition:all 0.2s;" onmouseover="this.style.color='#ff4d6d';this.style.background='rgba(255,0,80,0.08)'" onmouseout="this.style.color='rgba(255,255,255,0.18)';this.style.background='none'">
+                ✕
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {% if task.notes %}
+        <div style="margin-top:8px; padding-left:40px; font-size:12px; color:var(--text-muted); font-style:italic;">
+          {{ task.notes }}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card" style="text-align:center; padding:3rem 1.5rem; border:1px dashed var(--border-glow); background:rgba(255,255,255,0.01);">
+      <div style="font-size:28px; margin-bottom:12px;">📋</div>
+      <p style="color: var(--text-muted); font-size:14px; margin-bottom:14px;">No tasks yet.</p>
+      <form action="{% url 'task_regenerate' uni.pk %}" method="POST" style="display:inline-block;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline btn-sm">Generate Tasks</button>
+      </form>
+    </div>
+  {% endif %}
+
+  <div class="card" style="margin-top:12px; padding:1rem 1.25rem; background:rgba(255,255,255,0.01); border:1px dashed rgba(255,255,255,0.07); border-radius:14px;">
+    <details>
+      <summary style="font-size:13px; color:#00f2fe; font-weight:500; cursor:pointer; user-select:none;">+ Add milestone task</summary>
+      <form action="{% url 'task_create' uni.pk %}" method="POST" style="margin-top:1rem; display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; align-items:flex-end;">
+        {% csrf_token %}
+        <input type="hidden" name="status" value="pending">
+        <input type="hidden" name="order" value="0">
+        <div>
+          <label style="display:block; font-size:11px; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; font-weight:600;">Title</label>
+          <input type="text" name="title" required placeholder="e.g. Mail hardcopies" style="width:100%; padding:6px 10px; background:#1b1931; border:1px solid var(--border-glow); border-radius:8px; color:#fff; font-size:14px;">
+        </div>
+        <div>
+          <label style="display:block; font-size:11px; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; font-weight:600;">Category</label>
+          <select name="task_type" style="width:100%; padding:6px 10px; background:#1b1931; border:1px solid var(--border-glow); border-radius:8px; color:#fff; font-size:14px;">
+            <option value="sop">Statement of Purpose</option>
+            <option value="lor">Letter of Recommendation</option>
+            <option value="transcript">Official Transcripts</option>
+            <option value="cv">CV / Resume</option>
+            <option value="essay">Supplemental Essay</option>
+            <option value="test_score">Test Score Submission</option>
+            <option value="financials">Financial Documents</option>
+            <option value="visa">Visa / Immigration Docs</option>
+            <option value="other" selected>Other</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; font-size:11px; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; font-weight:600;">Due date</label>
+          <input type="date" name="due_date" style="width:100%; padding:6px 10px; background:#1b1931; border:1px solid var(--border-glow); border-radius:8px; color:#fff; font-size:14px;">
+        </div>
+        <div>
+          <button type="submit" class="btn btn-primary btn-sm" style="width:100%; padding:7px 12px; font-size:13px;">Save milestone</button>
+        </div>
+      </form>
+    </details>
+  </div>
+</div>
+
 <div style="margin-top: 1rem;">
   <h2 style="font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px;">
     <span style="width: 6px; height: 6px; background: #b026ff; border-radius: 50%; box-shadow: 0 0 8px #b026ff;"></span>
@@ -194,4 +323,79 @@
   {% endwith %}
 </div>
 
+<script>
+const TOTAL = {{ task_total_count }};
+
+document.querySelectorAll('.js-toggle-form').forEach(form => {
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const payload = new FormData(this);
+
+    fetch(this.action, {
+      method: 'POST',
+      body: payload,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+    .then(({ status }) => {
+      const card  = this.closest('.cl-item');
+      const btn   = this.querySelector('.cl-toggle-btn');
+      const badge = card.querySelector('.cl-badge');
+      const title = card.querySelector('.cl-task-title');
+
+      // Button styles
+      const btnStyles = {
+        done:        { bg:'rgba(0,255,135,0.12)', border:'rgba(0,255,135,0.35)', color:'#00ff87',           icon:'✓' },
+        in_progress: { bg:'rgba(249,212,35,0.12)', border:'rgba(249,212,35,0.35)', color:'#f9d423',         icon:'–' },
+        pending:     { bg:'rgba(255,255,255,0.04)', border:'rgba(255,255,255,0.12)', color:'rgba(255,255,255,0.25)', icon:'○' },
+      };
+      const bs = btnStyles[status];
+      btn.style.background   = bs.bg;
+      btn.style.borderColor  = bs.border;
+      btn.style.color        = bs.color;
+      btn.textContent        = bs.icon;
+
+      // Badge
+      const badgeStyles = {
+        done:        { bg:'rgba(0,255,135,0.08)',   color:'#00ff87', border:'rgba(0,255,135,0.25)',   label:'Done' },
+        in_progress: { bg:'rgba(249,212,35,0.08)',  color:'#f9d423', border:'rgba(249,212,35,0.25)',  label:'In Progress' },
+        pending:     { bg:'rgba(255,255,255,0.04)', color:'var(--text-muted)', border:'rgba(255,255,255,0.1)', label:'Pending' },
+      };
+      const b = badgeStyles[status];
+      badge.style.background  = b.bg;
+      badge.style.color       = b.color;
+      badge.style.borderColor = b.border;
+      badge.textContent       = b.label;
+
+      // Card background & border
+      if (status === 'done') {
+        card.style.background   = 'rgba(0,255,135,0.04)';
+        card.style.borderColor  = 'rgba(0,255,135,0.2)';
+        title.style.color       = 'var(--text-muted)';
+        title.style.textDecoration = 'line-through';
+      } else if (status === 'in_progress') {
+        card.style.background   = 'var(--bg-card)';
+        card.style.borderColor  = 'rgba(249,212,35,0.25)';
+        title.style.color       = '#fff';
+        title.style.textDecoration = 'none';
+      } else {
+        card.style.background   = 'var(--bg-card)';
+        card.style.borderColor  = 'var(--border-glow)';
+        title.style.color       = '#fff';
+        title.style.textDecoration = 'none';
+      }
+
+      // Progress bar
+      const doneCount = document.querySelectorAll('#cl-list .cl-item[style*="rgba(0,255,135,0.04)"]').length;
+      // re-count by badge text to be accurate
+      const allBadges = document.querySelectorAll('#cl-list .cl-badge');
+      const realDone  = [...allBadges].filter(b => b.textContent.trim() === 'Done').length;
+      const pct       = TOTAL > 0 ? Math.round(realDone / TOTAL * 100) : 0;
+      document.getElementById('prog-count').textContent = realDone + ' / ' + TOTAL + ' done';
+      document.getElementById('prog-bar').style.width   = pct + '%';
+    })
+    .catch(() => console.error('Toggle failed'));
+  });
+});
+</script>
 {% endblock %}

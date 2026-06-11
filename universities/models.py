@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 class TestScore(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='test_scores')
@@ -55,7 +56,6 @@ class University(models.Model):
 
     @property
     def days_until_deadline(self):
-        from django.utils import timezone
         if not self.deadline:
             return None
         return (self.deadline - timezone.now().date()).days
@@ -112,3 +112,99 @@ class Document(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.get_doc_type_display()})"
+    
+
+class ApplicationTask(models.Model):
+
+    TASK_TYPE_CHOICES = [
+        ('sop',        'Statement of Purpose'),
+        ('lor',        'Letter of Recommendation'),
+        ('transcript', 'Official Transcripts'),
+        ('cv',         'CV / Resume'),
+        ('essay',      'Supplemental Essay'),
+        ('test_score', 'Test Score Submission'),
+        ('financials', 'Financial Documents'),
+        ('visa',       'Visa / Immigration Docs'),
+        ('other',      'Other'),
+    ]
+
+    STATUS_CHOICES = [
+        ('pending',     'Pending'),
+        ('in_progress', 'In Progress'),
+        ('done',        'Done'),
+    ]
+
+    # Every task belongs to exactly one university application
+    university = models.ForeignKey(
+        University,
+        on_delete=models.CASCADE,
+        related_name='tasks',
+    )
+
+    title     = models.CharField(max_length=200)
+    task_type = models.CharField(max_length=20, choices=TASK_TYPE_CHOICES, default='other')
+    status    = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pending')
+    due_date  = models.DateField(null=True, blank=True)
+    notes     = models.TextField(blank=True)
+    order     = models.PositiveSmallIntegerField(default=0)  # controls display order
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['order', 'created_at']
+
+    def __str__(self):
+        return f"[{self.university.name}] {self.title} ({self.get_status_display()})"
+
+    @property
+    def is_done(self):
+        return self.status == 'done'
+    
+_CORE_TASKS = [
+    (1,  'sop',        'Draft Statement of Purpose'),
+    (2,  'sop',        'Finalise & Proofread SOP'),
+    (3,  'lor',        'Ask Professor / Employer for LOR 1'),
+    (4,  'lor',        'Ask Professor / Employer for LOR 2'),
+    (5,  'transcript', 'Request Official Transcripts'),
+    (6,  'cv',         'Update CV / Resume'),
+    (7,  'test_score', 'Submit Test Scores (SAT / IELTS / TOEFL)'),
+]
+
+_MATCH_EXTRA = [
+    (8,  'essay',      'Write Supplemental Essay'),
+    (9,  'financials', 'Prepare Financial / Bank Documents'),
+]
+
+_REACH_EXTRA = [
+    (10, 'essay',      'Write Short-Answer Essays'),
+    (11, 'financials', 'Obtain Sponsorship / Scholarship Proof'),
+    (12, 'visa',       'Start Visa / I-20 Preparation'),
+]
+
+TASK_TEMPLATES = {
+    'safety': _CORE_TASKS,
+    'match':  _CORE_TASKS + _MATCH_EXTRA,
+    'reach':  _CORE_TASKS + _MATCH_EXTRA + _REACH_EXTRA,
+}
+
+
+def generate_tasks_for_university(university: University) -> None:
+    """
+    Creates the default ApplicationTask rows for a university.
+    Safe to call multiple times — skips creation if tasks already exist.
+    """
+    if university.tasks.exists():
+        return  # already has tasks; don't duplicate
+
+    templates = TASK_TEMPLATES.get(university.university_type, _CORE_TASKS)
+    tasks = [
+        ApplicationTask(
+            university=university,
+            order=order,
+            task_type=task_type,
+            title=title,
+        )
+        for order, task_type, title in templates
+    ]
+    ApplicationTask.objects.bulk_create(tasks)

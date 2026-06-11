@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from .models import University, Scholarship, Document, TestScore
+from .models import University, Scholarship, Document, TestScore, ApplicationTask
 
 def validate_pdf_and_size(file):
     """
@@ -72,4 +72,13 @@ class TestScoreForm(forms.ModelForm):
             'ielts_speaking': 'Speaking', 'toefl_total': 'TOEFL Total',
             'toefl_reading': 'Reading', 'toefl_listening': 'Listening',
             'toefl_speaking': 'Speaking', 'toefl_writing': 'Writing',
+        }
+
+class ApplicationTaskForm(forms.ModelForm):
+    class Meta:
+        model  = ApplicationTask          # noqa — imported above
+        fields = ['title', 'task_type', 'status', 'due_date', 'notes', 'order']
+        widgets = {
+            'due_date': forms.DateInput(attrs={'type': 'date'}),
+            'notes':    forms.Textarea(attrs={'rows': 2}),
         }

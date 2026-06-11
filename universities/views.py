@@ -1,13 +1,15 @@
+from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Sum, Q, Case, When, Value, CharField
-from .models import University, Scholarship, Document, TestScore
-from .forms import RegisterForm, UniversityForm, ScholarshipForm, DocumentForm, TestScoreForm
-from decimal import Decimal
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from .models import University, Scholarship, Document, TestScore, ApplicationTask, generate_tasks_for_university
+from .forms  import RegisterForm, UniversityForm, ScholarshipForm, DocumentForm, TestScoreForm, ApplicationTaskForm
 
 def register_view(request):
     if request.user.is_authenticated:
@@ -154,8 +156,26 @@ def university_delete(request, pk):
 @login_required
 def university_detail(request, pk):
     uni = get_object_or_404(University, pk=pk, user=request.user)
-    return render(request, 'applications/university_detail.html', {'uni': uni})
 
+    # DELETE THESE LINES:
+    if uni.id == 7:
+        uni.tasks.all().delete()
+    if not uni.tasks.exists():
+        from .models import generate_tasks_for_university
+        generate_tasks_for_university(uni)
+
+    tasks = uni.tasks.all().order_by('order', 'created_at')
+    today = timezone.now().date()
+    task_form = ApplicationTaskForm()
+
+    return render(request, 'applications/university_detail.html', {
+        'uni': uni,
+        'tasks': tasks,
+        'task_total_count': tasks.count(),
+        'task_done_count': tasks.filter(status='done').count(),
+        'task_form': task_form,
+        'today': today,
+    })
 
 @login_required
 def scholarship_list(request):
@@ -213,3 +233,78 @@ def scores_view(request):
         messages.success(request, 'Scores saved.')
         return redirect('scores')
     return render(request, 'applications/scores.html', {'form': form, 'scores': scores})
+
+@require_POST
+@login_required
+def task_toggle(request, pk):
+    task = get_object_or_404(ApplicationTask, pk=pk, university__user=request.user)
+    cycle = {'pending': 'done', 'done': 'pending', 'in_progress': 'done'}
+    task.status = cycle.get(task.status, 'pending')
+    task.save(update_fields=['status', 'updated_at'])
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'status': task.status})
+    return redirect('university_detail', pk=task.university_id)
+
+@require_POST
+@login_required
+def task_update(request, pk):
+    """
+    Update a single task's title, notes, due_date, or status via a small form
+    embedded in university_detail.
+    POST /universities/tasks/<pk>/update/
+    """
+    task = get_object_or_404(ApplicationTask, pk=pk, university__user=request.user)
+    form = ApplicationTaskForm(request.POST, instance=task)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Task updated.')
+    return redirect('university_detail', pk=task.university_id)
+
+@require_POST
+@login_required
+def task_delete(request, pk):
+    """
+    Delete a task.
+    POST /universities/tasks/<pk>/delete/
+    """
+    task = get_object_or_404(ApplicationTask, pk=pk, university__user=request.user)
+    uni_pk = task.university_id
+    task.delete()
+    messages.success(request, 'Task removed.')
+    return redirect('university_detail', pk=uni_pk)
+
+
+@require_POST
+@login_required
+def task_create(request, uni_pk):
+    uni = get_object_or_404(University, pk=uni_pk, user=request.user)
+    form = ApplicationTaskForm(request.POST)
+    if form.is_valid():
+        task = form.save(commit=False)
+        task.university = uni
+        task.save()
+        messages.success(request, 'Task added.')
+    else:
+        messages.error(request, f'Error: {form.errors}')
+    return redirect('university_detail', pk=uni_pk)
+
+
+@require_POST
+@login_required
+def task_regenerate(request, uni_pk):
+    """
+    Re-generate the default checklist for a university (only adds missing tasks,
+    never deletes existing ones — safe to call at any time).
+    POST /universities/<uni_pk>/tasks/regenerate/
+    """
+    uni = get_object_or_404(University, pk=uni_pk, user=request.user)
+    # Temporarily clear tasks so generate_tasks_for_university will run
+    # Only delete tasks that are still 'pending' and were auto-generated
+    # (title matches a template title) — leaves custom / in-progress tasks alone.
+    from .models import TASK_TEMPLATES, generate_tasks_for_university
+    template_titles = {title for _, _, title in TASK_TEMPLATES.get(uni.university_type, [])}
+    uni.tasks.filter(status='pending', title__in=template_titles).delete()
+    generate_tasks_for_university(uni)
+    messages.success(request, 'Checklist refreshed.')
+    return redirect('university_detail', pk=uni_pk)
