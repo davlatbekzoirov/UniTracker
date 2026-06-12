@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -44,7 +45,6 @@ class TestScore(models.Model):
         m = self.sat_math or 0
         return r + m if (r or m) else None
 
-
 class University(models.Model):
     TYPE_CHOICES = [('reach','Reach'),('match','Match'),('safety','Safety')]
     STATUS_CHOICES = [
@@ -77,7 +77,6 @@ class University(models.Model):
             return None
         return (self.deadline - timezone.now().date()).days
 
-
 class Scholarship(models.Model):
     university = models.ForeignKey(University, on_delete=models.CASCADE, related_name='scholarships')
     name = models.CharField(max_length=200)
@@ -89,7 +88,6 @@ class Scholarship(models.Model):
 
     def __str__(self):
         return f"{self.name} – {self.university.name}"
-
 
 def validate_pdf_and_size(file):
     """
@@ -109,7 +107,10 @@ def validate_pdf_and_size(file):
     return file
 
 def document_upload_path(instance, filename):
-    return f'documents/{instance.user.id}/{filename}'
+    user_id = getattr(instance, 'user_id', None)
+    if user_id is None:                       
+        user_id = instance.document.user_id
+    return f'documents/{user_id}/{filename}'
 
 class Document(models.Model):
     DOC_TYPES = [
@@ -130,7 +131,6 @@ class Document(models.Model):
     def __str__(self):
         return f"{self.name} ({self.get_doc_type_display()})"
     
-
 class ApplicationTask(models.Model):
 
     TASK_TYPE_CHOICES = [
@@ -205,14 +205,13 @@ TASK_TEMPLATES = {
     'reach':  _CORE_TASKS + _MATCH_EXTRA + _REACH_EXTRA,
 }
 
-
 def generate_tasks_for_university(university: University) -> None:
     """
     Creates the default ApplicationTask rows for a university.
     Safe to call multiple times — skips creation if tasks already exist.
     """
     if university.tasks.exists():
-        return  # already has tasks; don't duplicate
+        return  
 
     templates = TASK_TEMPLATES.get(university.university_type, _CORE_TASKS)
     tasks = [
@@ -225,3 +224,37 @@ def generate_tasks_for_university(university: University) -> None:
         for order, task_type, title in templates
     ]
     ApplicationTask.objects.bulk_create(tasks)
+
+class DocumentVersion(models.Model):
+    document   = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='versions')
+    file       = models.FileField(upload_to=document_upload_path, validators=[validate_pdf_and_size])
+    label      = models.CharField(max_length=100, default='Draft',
+                     help_text='e.g. "Draft 1", "Revised", "Final"')
+    notes      = models.TextField(blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL,
+                     null=True, blank=True, related_name='+')
+
+    class Meta:
+        ordering = ['uploaded_at']
+
+    def __str__(self):
+        return f'{self.document.name} — {self.label}'
+
+def share_link_expiry():
+    return timezone.now() + timezone.timedelta(days=7)
+
+class ShareLink(models.Model):
+    document   = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='share_links')
+    token      = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(default=share_link_expiry)
+    is_active  = models.BooleanField(default=True)
+    accessed_count = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f'Share link for {self.document.name} (expires {self.expires_at:%Y-%m-%d})'
+
+    @property
+    def is_valid(self):
+        return self.is_active and timezone.now() < self.expires_at

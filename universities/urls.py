@@ -27,4 +27,11 @@ urlpatterns = [
     path('scores/', views.scores_view, name='scores'),
 
     path('autocomplete/', university_autocomplete, name='university_autocomplete'),
+
+    path('documents/<int:pk>/',                    views.document_detail,          name='document_detail'),
+    path('documents/<int:doc_pk>/versions/add/',   views.document_version_upload,  name='document_version_upload'),
+    path('documents/versions/<int:pk>/delete/',    views.document_version_delete,  name='document_version_delete'),
+    path('documents/<int:doc_pk>/share/',          views.share_link_create,        name='share_link_create'),
+    path('documents/share/<int:pk>/revoke/',       views.share_link_revoke,        name='share_link_revoke'),
+    path('shared/<uuid:token>/',                   views.shared_document_view,     name='shared_document'),
 ]

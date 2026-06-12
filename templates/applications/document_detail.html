@@ -1,0 +1,148 @@
+{% extends 'applications/base.html' %}
+{% block title %}{{ doc.name }} — UniTracker{% endblock %}
+
+{% block content %}
+<div style="max-width:780px;margin:0 auto">
+
+  <div class="page-header">
+    <div>
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#555;margin-bottom:6px">
+        Documents
+      </div>
+      <h1 class="page-title">{{ doc.name }}</h1>
+      <p style="color:#666;font-size:13px;margin-top:4px">
+        {{ doc.get_doc_type_display }}
+        {% if doc.university %} · {{ doc.university.name }}{% endif %}
+      </p>
+    </div>
+    <a href="{% url 'documents' %}" class="btn btn-outline btn-sm">← Back</a>
+  </div>
+
+  <!-- Version history -->
+  <div class="card" style="margin-bottom:1.5rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+      <span style="font-size:15px;font-weight:600;color:#e8e6f0">
+        Versions
+        <span style="font-size:12px;font-weight:400;color:#555;margin-left:6px">{{ versions.count }} total</span>
+      </span>
+    </div>
+
+    {% if versions %}
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem">
+      {% for v in versions %}
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:32px;height:32px;border-radius:8px;background:rgba(127,119,221,.15);border:1px solid rgba(127,119,221,.25);display:flex;align-items:center;justify-content:center;font-size:14px">
+            📄
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#e8e6f0">{{ v.label }}</div>
+            <div style="font-size:11px;color:#555;margin-top:2px">{{ v.uploaded_at|date:"M j, Y · g:i A" }}</div>
+            {% if v.notes %}<div style="font-size:12px;color:#666;margin-top:3px">{{ v.notes }}</div>{% endif %}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          {% if forloop.last %}
+            <span style="font-size:11px;padding:2px 8px;border-radius:20px;background:rgba(29,158,117,.15);color:#1D9E75;border:1px solid rgba(29,158,117,.25)">Latest</span>
+          {% endif %}
+          <a href="{{ v.file.url }}" target="_blank" class="btn btn-outline btn-sm">View</a>
+          <form method="post" action="{% url 'document_version_delete' v.pk %}" onsubmit="return confirm('Delete this version?')">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:#555;font-size:13px;margin-bottom:1.5rem">No versions yet. Upload your first draft below.</p>
+    {% endif %}
+
+    <!-- Upload new version -->
+    <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:1.25rem">
+      <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#444;margin-bottom:1rem">Upload new version</div>
+      <form method="post" enctype="multipart/form-data" action="{% url 'document_version_upload' doc.pk %}">
+        {% csrf_token %}
+        <div class="form-row">
+          <div class="form-group">
+            <label>Label</label>
+            {{ version_form.label }}
+            {% if version_form.label.errors %}
+              <p style="color:#F09595;font-size:12px;margin-top:4px">{{ version_form.label.errors|join:', ' }}</p>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label>File <span style="color:#555;font-weight:400">(PDF, max 5 MB)</span></label>
+            {{ version_form.file }}
+            {% if version_form.file.errors %}
+              <p style="color:#F09595;font-size:12px;margin-top:4px">{{ version_form.file.errors|join:', ' }}</p>
+            {% endif %}
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Notes <span style="color:#555;font-weight:400">(optional)</span></label>
+          {{ version_form.notes }}
+        </div>
+        <div style="display:flex;justify-content:flex-end">
+          <button type="submit" class="btn btn-primary">Upload version</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Share links -->
+  <div class="card">
+    <div style="font-size:15px;font-weight:600;color:#e8e6f0;margin-bottom:.25rem">Share links</div>
+    <p style="font-size:13px;color:#666;margin-bottom:1.25rem">
+      Generate a view-only link to share the latest version with a reviewer. No account needed.
+    </p>
+
+    {% if links %}
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:1.25rem">
+      {% for link in links %}
+      <div style="padding:12px 16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:12px;font-family:monospace;color:#AFA9EC;word-break:break-all">
+              {{ request.scheme }}://{{ request.get_host }}{% url 'shared_document' link.token %}
+            </div>
+            <div style="font-size:11px;color:#555;margin-top:4px;display:flex;gap:12px">
+              <span>Created {{ link.created_at|date:"M j" }}</span>
+              <span>Expires {{ link.expires_at|date:"M j, Y" }}</span>
+              <span>Viewed {{ link.accessed_count }} time{{ link.accessed_count|pluralize }}</span>
+              {% if not link.is_valid %}
+                <span style="color:#E24B4A">Expired</span>
+              {% endif %}
+            </div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button
+              onclick="navigator.clipboard.writeText('{{ request.scheme }}://{{ request.get_host }}{% url 'shared_document' link.token %}').then(() => this.textContent = 'Copied!')"
+              class="btn btn-outline btn-sm">Copy</button>
+            <form method="post" action="{% url 'share_link_revoke' link.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger btn-sm">Revoke</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Create new link -->
+    <form method="post" action="{% url 'share_link_create' doc.pk %}" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      {% csrf_token %}
+      <label style="font-size:13px;color:#888">Expires in</label>
+      <select name="days" style="width:auto;padding:6px 12px;background:#1a1a18;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#e8e6f0;font-size:13px">
+        <option value="3">3 days</option>
+        <option value="7" selected>7 days</option>
+        <option value="14">14 days</option>
+        <option value="30">30 days</option>
+      </select>
+      <button type="submit" class="btn btn-primary btn-sm">Generate link</button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import University, Scholarship, Document, TestScore
+from .models import University, Scholarship, Document, TestScore, DocumentVersion, ShareLink
 
 @admin.register(University)
 class UniversityAdmin(admin.ModelAdmin):
@@ -20,3 +20,13 @@ class DocumentAdmin(admin.ModelAdmin):
 class TestScoreAdmin(admin.ModelAdmin):
     list_display = ['user', 'sat_reading', 'sat_math', 'ielts_overall', 'toefl_total']
 
+@admin.register(DocumentVersion)
+class DocumentVersionAdmin(admin.ModelAdmin):
+    list_display = ['document', 'label', 'uploaded_at', 'uploaded_by']
+    list_filter  = ['uploaded_at']
+
+@admin.register(ShareLink)
+class ShareLinkAdmin(admin.ModelAdmin):
+    list_display = ['document', 'token', 'created_at', 'expires_at', 'is_active', 'accessed_count']
+    list_filter  = ['is_active']
+    readonly_fields = ['token', 'accessed_count']

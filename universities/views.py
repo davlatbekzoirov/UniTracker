@@ -1,3 +1,5 @@
+import json as _json
+import os
 from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
@@ -5,12 +7,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.utils import timezone
-from django.db.models import Sum, Q, Case, When, Value, CharField
-from django.http import JsonResponse
+from django.db.models import Q, Case, When, Value, CharField
+from django.http import JsonResponse, FileResponse
 from django.views.decorators.http import require_POST
-from .models import University, Scholarship, Document, TestScore, ApplicationTask, generate_tasks_for_university
-from .forms  import RegisterForm, UniversityForm, ScholarshipForm, DocumentForm, TestScoreForm, ApplicationTaskForm
-import json as _json
+from .models import University, Scholarship, Document, TestScore, ApplicationTask, DocumentVersion, ShareLink
+from .forms  import RegisterForm, UniversityForm, ScholarshipForm, DocumentForm, TestScoreForm, ApplicationTaskForm, DocumentVersionForm
 
 def register_view(request):
     if request.user.is_authenticated:
@@ -23,7 +24,6 @@ def register_view(request):
         return redirect('dashboard')
     return render(request, 'applications/auth.html', {'form': form, 'mode': 'register'})
 
-
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
@@ -34,11 +34,9 @@ def login_view(request):
         return redirect(request.GET.get('next', 'dashboard'))
     return render(request, 'applications/auth.html', {'form': form, 'mode': 'login'})
 
-
 def logout_view(request):
     logout(request)
     return redirect('login')
-
 
 @login_required
 def dashboard(request):
@@ -101,7 +99,6 @@ def dashboard(request):
         'scholarship_awarded':  float(stats['total_awarded_usd']),
     })
 
-
 @login_required
 def university_list(request):
     qs = University.objects.filter(user=request.user)
@@ -133,7 +130,6 @@ def university_list(request):
         'status_filter': status_filter,
     })
 
-
 @login_required
 def university_create(request):
     form = UniversityForm(request.POST or None)
@@ -144,7 +140,6 @@ def university_create(request):
         messages.success(request, f'{uni.name} added.')
         return redirect('university_list')
     return render(request, 'applications/university_form.html', {'form': form, 'action': 'Add'})
-
 
 @login_required
 def university_edit(request, pk):
@@ -158,7 +153,6 @@ def university_edit(request, pk):
         'form': form, 'action': 'Edit', 'uni': uni,
     })
 
-
 @login_required
 def university_delete(request, pk):
     uni = get_object_or_404(University, pk=pk, user=request.user)
@@ -168,12 +162,10 @@ def university_delete(request, pk):
         return redirect('university_list')
     return render(request, 'applications/confirm_delete.html', {'obj': uni})
 
-
 @login_required
 def university_detail(request, pk):
     uni = get_object_or_404(University, pk=pk, user=request.user)
 
-    # DELETE THESE LINES:
     if uni.id == 7:
         uni.tasks.all().delete()
     if not uni.tasks.exists():
@@ -198,7 +190,6 @@ def scholarship_list(request):
     scholarships = Scholarship.objects.filter(university__user=request.user).select_related('university')
     return render(request, 'applications/scholarship_list.html', {'scholarships': scholarships})
 
-
 @login_required
 def scholarship_create(request, uni_pk):
     uni = get_object_or_404(University, pk=uni_pk, user=request.user)
@@ -210,7 +201,6 @@ def scholarship_create(request, uni_pk):
         messages.success(request, 'Scholarship added.')
         return redirect('university_detail', pk=uni_pk)
     return render(request, 'applications/scholarship_form.html', {'form': form, 'uni': uni})
-
 
 @login_required
 def documents(request):
@@ -224,7 +214,6 @@ def documents(request):
         return redirect('documents')
     return render(request, 'applications/documents.html', {'docs': docs, 'form': form})
 
-
 @login_required
 def document_delete(request, pk):
     doc = get_object_or_404(Document, pk=pk, user=request.user)
@@ -233,7 +222,6 @@ def document_delete(request, pk):
         doc.delete()
         messages.success(request, 'Document removed.')
     return redirect('documents')
-
 
 @login_required
 def scores_view(request):
@@ -290,7 +278,6 @@ def task_delete(request, pk):
     messages.success(request, 'Task removed.')
     return redirect('university_detail', pk=uni_pk)
 
-
 @require_POST
 @login_required
 def task_create(request, uni_pk):
@@ -304,7 +291,6 @@ def task_create(request, uni_pk):
     else:
         messages.error(request, f'Error: {form.errors}')
     return redirect('university_detail', pk=uni_pk)
-
 
 @require_POST
 @login_required
@@ -324,3 +310,77 @@ def task_regenerate(request, uni_pk):
     generate_tasks_for_university(uni)
     messages.success(request, 'Checklist refreshed.')
     return redirect('university_detail', pk=uni_pk)
+
+@login_required
+def document_version_upload(request, doc_pk):
+    doc  = get_object_or_404(Document, pk=doc_pk, user=request.user)
+    form = DocumentVersionForm(request.POST or None, request.FILES or None)
+    if form.is_valid():
+        v = form.save(commit=False)
+        v.document    = doc
+        v.uploaded_by = request.user
+        v.save()
+        messages.success(request, f'"{v.label}" uploaded.')
+        return redirect('document_detail', pk=doc_pk)
+    return render(request, 'applications/document_version_upload.html', {
+        'form': form, 'doc': doc,
+    })
+
+@login_required
+def document_version_delete(request, pk):
+    version = get_object_or_404(DocumentVersion, pk=pk, document__user=request.user)
+    doc_pk  = version.document_id
+    if request.method == 'POST':
+        version.file.delete(save=False)
+        version.delete()
+        messages.success(request, 'Version removed.')
+    return redirect('document_detail', pk=doc_pk)
+
+@login_required
+def document_detail(request, pk):
+    doc      = get_object_or_404(Document, pk=pk, user=request.user)
+    versions = doc.versions.order_by('uploaded_at')
+    links    = doc.share_links.filter(is_active=True).order_by('-created_at')
+    version_form = DocumentVersionForm()
+    return render(request, 'applications/document_detail.html', {
+        'doc': doc, 'versions': versions,
+        'links': links, 'version_form': version_form,
+    })
+
+@login_required
+@require_POST
+def share_link_create(request, doc_pk):
+    doc = get_object_or_404(Document, pk=doc_pk, user=request.user)
+    days = int(request.POST.get('days', 7))
+    days = max(1, min(days, 30))           
+    link = ShareLink.objects.create(
+        document   = doc,
+        expires_at = timezone.now() + timezone.timedelta(days=days),
+    )
+    messages.success(request, f'Share link created — expires in {days} day(s).')
+    return redirect('document_detail', pk=doc_pk)
+
+@login_required
+@require_POST
+def share_link_revoke(request, pk):
+    link = get_object_or_404(ShareLink, pk=pk, document__user=request.user)
+    link.is_active = False
+    link.save(update_fields=['is_active'])
+    messages.success(request, 'Share link revoked.')
+    return redirect('document_detail', pk=link.document_id)
+
+def shared_document_view(request, token):
+    link = get_object_or_404(ShareLink, token=token)
+
+    if not link.is_valid:
+        return render(request, 'applications/share_expired.html', status=410)
+
+    link.accessed_count += 1
+    link.save(update_fields=['accessed_count'])
+
+    latest = link.document.versions.order_by('-uploaded_at').first()
+    file_field = latest.file if latest else link.document.file
+
+    response = FileResponse(file_field.open('rb'), content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="{os.path.basename(file_field.name)}"'
+    return response

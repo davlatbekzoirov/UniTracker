@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from .models import University, Scholarship, Document, TestScore, ApplicationTask
+from .models import University, Scholarship, Document, TestScore, ApplicationTask, DocumentVersion
 
 def validate_pdf_and_size(file):
     """
@@ -30,7 +30,6 @@ class RegisterForm(UserCreationForm):
         model = User
         fields = ['username', 'email', 'password1', 'password2']
 
-
 class UniversityForm(forms.ModelForm):
     class Meta:
         model = University
@@ -40,13 +39,11 @@ class UniversityForm(forms.ModelForm):
             'notes': forms.Textarea(attrs={'rows': 3}),
         }
 
-
 class ScholarshipForm(forms.ModelForm):
     class Meta:
         model = Scholarship
         fields = ['name', 'amount', 'currency', 'deadline', 'applied', 'notes']
         widgets = {'deadline': forms.DateInput(attrs={'type': 'date'})}
-
 
 class DocumentForm(forms.ModelForm):
     class Meta:
@@ -60,7 +57,6 @@ class DocumentForm(forms.ModelForm):
         self.fields['university'].required = False
         
         self.fields['file'].validators.append(validate_pdf_and_size)
-
 
 class TestScoreForm(forms.ModelForm):
     class Meta:
@@ -138,3 +134,16 @@ class ApplicationTaskForm(forms.ModelForm):
             'due_date': forms.DateInput(attrs={'type': 'date'}),
             'notes':    forms.Textarea(attrs={'rows': 2}),
         }
+
+class DocumentVersionForm(forms.ModelForm):
+    class Meta:
+        model  = DocumentVersion
+        fields = ['label', 'file', 'notes']
+        widgets = {
+            'notes': forms.Textarea(attrs={'rows': 2}),
+            'label': forms.TextInput(attrs={'placeholder': 'e.g. Draft 1, Revised, Final'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['file'].validators.append(validate_pdf_and_size)
