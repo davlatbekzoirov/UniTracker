@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from .models import University, Scholarship, Document, TestScore, ApplicationTask, generate_tasks_for_university
 from .forms  import RegisterForm, UniversityForm, ScholarshipForm, DocumentForm, TestScoreForm, ApplicationTaskForm
+import json as _json
 
 def register_view(request):
     if request.user.is_authenticated:
@@ -80,9 +81,24 @@ def dashboard(request):
     except TestScore.DoesNotExist:
         scores = None
         
+    timeline_labels = []
+    timeline_data   = []
+    for uni in universities.filter(deadline__isnull=False).order_by('deadline'):
+        timeline_labels.append(uni.name)
+        timeline_data.append(uni.deadline.isoformat())
+
+    app_fee_total_usd = Decimal('0.00') 
+    status_labels  = ['Reach', 'Match', 'Safety']
+    status_counts  = [stats['reach'], stats['match'], stats['safety']]
+
     return render(request, 'applications/dashboard.html', {
         'universities': universities, 'upcoming': upcoming,
         'stats': stats, 'scores': scores,
+        'timeline_labels_json': _json.dumps(timeline_labels),
+        'timeline_dates_json':  _json.dumps(timeline_data),
+        'status_counts_json':   _json.dumps(status_counts),
+        'scholarship_applied':  float(stats['total_applied_usd']),
+        'scholarship_awarded':  float(stats['total_awarded_usd']),
     })
 
 
