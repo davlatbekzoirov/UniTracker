@@ -78,8 +78,8 @@ CACHES = {
     }
 }
 
-CELERY_BROKER_URL = "redis://red-d8lekdq8qa3s73ereei0:6379"
-CELERY_RESULT_BACKEND = "redis://red-d8lekdq8qa3s73ereei0:6379"
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/1"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/1"
 CELERY_TIMEZONE = TIME_ZONE        
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
