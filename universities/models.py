@@ -2,21 +2,38 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class TestScore(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='test_scores')
-    sat_reading = models.PositiveSmallIntegerField(null=True, blank=True)
-    sat_math = models.PositiveSmallIntegerField(null=True, blank=True)
-    ielts_overall = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
-    ielts_listening = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
-    ielts_reading = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
-    ielts_writing = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
-    ielts_speaking = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
-    toefl_total = models.PositiveSmallIntegerField(null=True, blank=True)
-    toefl_reading = models.PositiveSmallIntegerField(null=True, blank=True)
-    toefl_listening = models.PositiveSmallIntegerField(null=True, blank=True)
-    toefl_speaking = models.PositiveSmallIntegerField(null=True, blank=True)
-    toefl_writing = models.PositiveSmallIntegerField(null=True, blank=True)
+
+    # SAT: each section 200–800
+    sat_reading = models.PositiveSmallIntegerField(null=True, blank=True,
+        validators=[MinValueValidator(200), MaxValueValidator(800)])
+    sat_math    = models.PositiveSmallIntegerField(null=True, blank=True,
+        validators=[MinValueValidator(200), MaxValueValidator(800)])
+
+    ielts_overall   = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(9.0)])
+    ielts_listening = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(9.0)])
+    ielts_reading   = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(9.0)])
+    ielts_writing   = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(9.0)])
+    ielts_speaking  = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(9.0)])
+
+    toefl_total     = models.PositiveSmallIntegerField(null=True, blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(120)])
+    toefl_reading   = models.PositiveSmallIntegerField(null=True, blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(30)])
+    toefl_listening = models.PositiveSmallIntegerField(null=True, blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(30)])
+    toefl_speaking  = models.PositiveSmallIntegerField(null=True, blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(30)])
+    toefl_writing   = models.PositiveSmallIntegerField(null=True, blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(30)])
 
     def __str__(self):
         return f"{self.user.username}'s scores"

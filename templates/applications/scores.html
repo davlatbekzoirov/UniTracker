@@ -17,121 +17,148 @@
   <form method="post">
     {% csrf_token %}
 
+    {% if form.non_field_errors %}
+      <div class="card" style="margin-bottom:1rem;border-top:4px solid #E24B4A">
+        {% for error in form.non_field_errors %}
+          <p style="color:#F09595;font-size:13px;margin:0">{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
 
-<div class="card" style="margin-bottom:1.5rem;border-top:4px solid #7F77DD">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
-    <div style="font-size:24px"></div>
-    <div>
-      <h2 style="font-size:18px;color:#fff">SAT Scores</h2>
-      <p style="font-size:13px;color:#999">Reading & Writing and Math sections</p>
-    </div>
-  </div>
-
-  <div class="form-row">
-    <div class="form-group">
-      <label>{{ form.sat_reading.label }}</label>
-      {{ form.sat_reading }}
-    </div>
-
-    <div class="form-group">
-      <label>{{ form.sat_math.label }}</label>
-      {{ form.sat_math }}
-    </div>
-  </div>
-</div>
-
-<!-- IELTS -->
-<div class="card" style="margin-bottom:1.5rem;border-top:4px solid #1D9E75">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
-    <div style="font-size:24px"></div>
-    <div>
-      <h2 style="font-size:18px;color:#fff">IELTS</h2>
-      <p style="font-size:13px;color:#999">English proficiency examination</p>
-    </div>
-  </div>
-
-  <div class="form-row">
-    <div class="form-group">
-      <label>Overall Band</label>
-      {{ form.ielts_overall }}
+    <!-- SAT -->
+    <div class="card" style="margin-bottom:1.5rem;border-top:4px solid #7F77DD">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
+        <div>
+          <h2 style="font-size:18px;color:#fff">SAT Scores</h2>
+          <p style="font-size:13px;color:#999">Each section scored 200–800 in 10-point increments</p>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>{{ form.sat_reading.label }}</label>
+          {{ form.sat_reading }}
+          {% if form.sat_reading.errors %}
+            <p style="color:#F09595;font-size:12px;margin-top:4px">{{ form.sat_reading.errors|join:', ' }}</p>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label>{{ form.sat_math.label }}</label>
+          {{ form.sat_math }}
+          {% if form.sat_math.errors %}
+            <p style="color:#F09595;font-size:12px;margin-top:4px">{{ form.sat_math.errors|join:', ' }}</p>
+          {% endif %}
+        </div>
+      </div>
     </div>
 
-    <div class="form-group">
-      <label>Listening</label>
-      {{ form.ielts_listening }}
-    </div>
-  </div>
-
-  <div class="form-row">
-    <div class="form-group">
-      <label>Reading</label>
-      {{ form.ielts_reading }}
-    </div>
-
-    <div class="form-group">
-      <label>Writing</label>
-      {{ form.ielts_writing }}
-    </div>
-  </div>
-
-  <div class="form-row">
-    <div class="form-group">
-      <label>Speaking</label>
-      {{ form.ielts_speaking }}
-    </div>
-  </div>
-</div>
-
-<!-- TOEFL -->
-<div class="card" style="margin-bottom:1.5rem;border-top:4px solid #378ADD">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
-    <div style="font-size:24px"></div>
-    <div>
-      <h2 style="font-size:18px;color:#fff">TOEFL iBT</h2>
-      <p style="font-size:13px;color:#999">Internet-based English proficiency test</p>
-    </div>
-  </div>
-
-  <div class="form-row">
-    <div class="form-group">
-      <label>Total Score</label>
-      {{ form.toefl_total }}
-    </div>
-
-    <div class="form-group">
-      <label>Reading</label>
-      {{ form.toefl_reading }}
-    </div>
-  </div>
-
-  <div class="form-row">
-    <div class="form-group">
-      <label>Listening</label>
-      {{ form.toefl_listening }}
+    <!-- IELTS -->
+    <div class="card" style="margin-bottom:1.5rem;border-top:4px solid #1D9E75">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
+        <div>
+          <h2 style="font-size:18px;color:#fff">IELTS</h2>
+          <p style="font-size:13px;color:#999">Bands 0.0–9.0 in 0.5 increments · Overall is the mean of all four skills</p>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Overall Band</label>
+          {{ form.ielts_overall }}
+          {% if form.ielts_overall.errors %}
+            <p style="color:#F09595;font-size:12px;margin-top:4px">{{ form.ielts_overall.errors|join:', ' }}</p>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label>Listening</label>
+          {{ form.ielts_listening }}
+          {% if form.ielts_listening.errors %}
+            <p style="color:#F09595;font-size:12px;margin-top:4px">{{ form.ielts_listening.errors|join:', ' }}</p>
+          {% endif %}
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Reading</label>
+          {{ form.ielts_reading }}
+          {% if form.ielts_reading.errors %}
+            <p style="color:#F09595;font-size:12px;margin-top:4px">{{ form.ielts_reading.errors|join:', ' }}</p>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label>Writing</label>
+          {{ form.ielts_writing }}
+          {% if form.ielts_writing.errors %}
+            <p style="color:#F09595;font-size:12px;margin-top:4px">{{ form.ielts_writing.errors|join:', ' }}</p>
+          {% endif %}
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Speaking</label>
+          {{ form.ielts_speaking }}
+          {% if form.ielts_speaking.errors %}
+            <p style="color:#F09595;font-size:12px;margin-top:4px">{{ form.ielts_speaking.errors|join:', ' }}</p>
+          {% endif %}
+        </div>
+      </div>
     </div>
 
-    <div class="form-group">
-      <label>Speaking</label>
-      {{ form.toefl_speaking }}
+    <!-- TOEFL -->
+    <div class="card" style="margin-bottom:1.5rem;border-top:4px solid #378ADD">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
+        <div>
+          <h2 style="font-size:18px;color:#fff">TOEFL iBT</h2>
+          <p style="font-size:13px;color:#999">Each section 0–30 · Total must equal the sum of all four sections</p>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Total Score</label>
+          {{ form.toefl_total }}
+          {% if form.toefl_total.errors %}
+            <p style="color:#F09595;font-size:12px;margin-top:4px">{{ form.toefl_total.errors|join:', ' }}</p>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label>Reading</label>
+          {{ form.toefl_reading }}
+          {% if form.toefl_reading.errors %}
+            <p style="color:#F09595;font-size:12px;margin-top:4px">{{ form.toefl_reading.errors|join:', ' }}</p>
+          {% endif %}
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Listening</label>
+          {{ form.toefl_listening }}
+          {% if form.toefl_listening.errors %}
+            <p style="color:#F09595;font-size:12px;margin-top:4px">{{ form.toefl_listening.errors|join:', ' }}</p>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label>Speaking</label>
+          {{ form.toefl_speaking }}
+          {% if form.toefl_speaking.errors %}
+            <p style="color:#F09595;font-size:12px;margin-top:4px">{{ form.toefl_speaking.errors|join:', ' }}</p>
+          {% endif %}
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Writing</label>
+          {{ form.toefl_writing }}
+          {% if form.toefl_writing.errors %}
+            <p style="color:#F09595;font-size:12px;margin-top:4px">{{ form.toefl_writing.errors|join:', ' }}</p>
+          {% endif %}
+        </div>
+      </div>
     </div>
-  </div>
 
-  <div class="form-row">
-    <div class="form-group">
-      <label>Writing</label>
-      {{ form.toefl_writing }}
+    <!-- Save Button -->
+    <div style="display:flex;justify-content:flex-end">
+      <button type="submit" class="btn btn-primary" style="padding:12px 28px;font-size:15px;font-weight:600">
+        🚀 Save Scores
+      </button>
     </div>
-  </div>
-</div>
-
-<!-- Save Button -->
-<div style="display:flex;justify-content:flex-end">
-  <button type="submit"
-          class="btn btn-primary"
-          style="padding:12px 28px;font-size:15px;font-weight:600">
-    🚀 Save Scores
-  </button>
-</div>
 
   </form>
 </div>
