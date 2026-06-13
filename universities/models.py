@@ -258,3 +258,15 @@ class ShareLink(models.Model):
     @property
     def is_valid(self):
         return self.is_active and timezone.now() < self.expires_at
+
+class CalendarToken(models.Model):
+    user  = models.OneToOneField(User, on_delete=models.CASCADE, related_name='calendar_token')
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+
+    def __str__(self):
+        return f"{self.user.username} calendar token"
+
+    @classmethod
+    def get_or_create_for(cls, user):
+        obj, _ = cls.objects.get_or_create(user=user)
+        return obj

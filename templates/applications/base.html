@@ -236,6 +236,8 @@
       <a href="{% url 'scholarship_list' %}" {% if 'scholarship' in request.resolver_match.url_name %}class="active"{% endif %}>Scholarships</a>
       <a href="{% url 'documents' %}" {% if request.resolver_match.url_name == 'documents' %}class="active"{% endif %}>Documents</a>
       <a href="{% url 'scores' %}" {% if request.resolver_match.url_name == 'scores' %}class="active"{% endif %}>Scores</a>
+      
+      <a href="{% url 'calendar_feed_info' %}" {% if 'calendar' in request.resolver_match.url_name %}class="active"{% endif %}>Calendar</a>
     </div>
     <div class="nav-user">{{ user.username }} · <a href="{% url 'logout' %}">Sign out</a></div>
   </nav>

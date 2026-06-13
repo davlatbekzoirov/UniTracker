@@ -34,4 +34,8 @@ urlpatterns = [
     path('documents/<int:doc_pk>/share/',          views.share_link_create,        name='share_link_create'),
     path('documents/share/<int:pk>/revoke/',       views.share_link_revoke,        name='share_link_revoke'),
     path('shared/<uuid:token>/',                   views.shared_document_view,     name='shared_document'),
+
+    path('calendar/', views.calendar_feed_info, name='calendar_feed_info'),
+    path('calendar/regenerate/', views.calendar_token_regenerate, name='calendar_token_regenerate'),
+    path('calendar/<uuid:token>.ics', views.ical_feed, name='ical_feed'),
 ]

@@ -1,5 +1,6 @@
 import json as _json
 import os
+import uuid as _uuid
 from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
@@ -8,9 +9,9 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q, Case, When, Value, CharField
-from django.http import JsonResponse, FileResponse
+from django.http import JsonResponse, FileResponse, HttpResponse
 from django.views.decorators.http import require_POST
-from .models import University, Scholarship, Document, TestScore, ApplicationTask, DocumentVersion, ShareLink
+from .models import University, Scholarship, Document, TestScore, ApplicationTask, DocumentVersion, ShareLink, CalendarToken
 from .forms  import RegisterForm, UniversityForm, ScholarshipForm, DocumentForm, TestScoreForm, ApplicationTaskForm, DocumentVersionForm
 
 def register_view(request):
@@ -384,3 +385,73 @@ def shared_document_view(request, token):
     response = FileResponse(file_field.open('rb'), content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="{os.path.basename(file_field.name)}"'
     return response
+
+@login_required
+def calendar_feed_info(request):
+    """Shows the user their calendar subscription URL and lets them regenerate it."""
+    token = CalendarToken.get_or_create_for(request.user)
+    url   = request.build_absolute_uri(f'/calendar/{token.token}.ics')
+    return render(request, 'applications/calendar_feed.html', {
+        'token': token, 'feed_url': url,
+    })
+
+@login_required
+@require_POST
+def calendar_token_regenerate(request):
+    token = CalendarToken.get_or_create_for(request.user)
+    token.token = _uuid.uuid4()
+    token.save(update_fields=['token'])
+    messages.success(request, 'Calendar URL regenerated. Update the link in your calendar app.')
+    return redirect('calendar_feed_info')
+
+def ical_feed(request, token):
+    """Public iCal endpoint — no login needed, protected by the UUID token."""
+    cal_token = get_object_or_404(CalendarToken, token=token)
+    user      = cal_token.user
+
+    universities = University.objects.filter(
+        user=user,
+        deadline__isnull=False,
+    ).exclude(status__in=['rejected'])
+
+    lines = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//UniTracker//Application Deadlines//EN',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        f'X-WR-CALNAME:{user.username} — UniTracker Deadlines',
+        'X-WR-TIMEZONE:UTC',
+    ]
+
+    for uni in universities:
+        uid      = f"unitracker-{uni.pk}@unitracker"
+        dtstart  = uni.deadline.strftime('%Y%m%d')
+        dtstamp  = timezone.now().strftime('%Y%m%dT%H%M%SZ')
+        summary  = _ical_escape(f"{uni.name} — {uni.program} deadline")
+        desc     = _ical_escape(
+            f"Status: {uni.get_status_display()} | Type: {uni.get_university_type_display()} | {uni.country}"
+        )
+        url_val  = uni.website or ''
+
+        lines += [
+            'BEGIN:VEVENT',
+            f'UID:{uid}',
+            f'DTSTAMP:{dtstamp}',
+            f'DTSTART;VALUE=DATE:{dtstart}',
+            f'DTEND;VALUE=DATE:{dtstart}',
+            f'SUMMARY:{summary}',
+            f'DESCRIPTION:{desc}',
+            f'URL:{url_val}',
+            f'STATUS:{"CONFIRMED" if uni.status not in ["rejected","deferred"] else "CANCELLED"}',
+            'END:VEVENT',
+        ]
+
+    lines.append('END:VCALENDAR')
+
+    content = '\r\n'.join(lines) + '\r\n'
+    return HttpResponse(content, content_type='text/calendar; charset=utf-8')
+
+def _ical_escape(text):
+    """Escape special characters per RFC 5545."""
+    return text.replace('\\', '\\\\').replace(';', '\\;').replace(',', '\\,').replace('\n', '\\n')
