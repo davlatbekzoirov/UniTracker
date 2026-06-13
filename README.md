@@ -16,7 +16,6 @@ This project demonstrates production-ready backend patterns including relational
 * Log and manage universities with fields for Name, Country, Program, Type (*Reach / Match / Safety*), Status, Deadline, Website, and Notes.
 * Advanced list view equipped with text search (Name/Country/Program) and multi-attribute filtering.
 * Dynamic "days-until-deadline" counter that changes color visually when a deadline becomes urgent.
-* Per-university score requirements (`avg_sat`, `min_ielts`, `min_toefl`) used for dynamic admissions chance calculation.
 
 ### 3. Smarter Admissions Chances
 * Each university stores its own average SAT, minimum IELTS, and minimum TOEFL requirements.
