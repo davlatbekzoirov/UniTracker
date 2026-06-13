@@ -12,32 +12,7 @@ from django.db.models import Q, Case, When, Value, CharField
 from django.http import JsonResponse, FileResponse, HttpResponse
 from django.views.decorators.http import require_POST
 from .models import University, Scholarship, Document, TestScore, ApplicationTask, DocumentVersion, ShareLink, CalendarToken
-from .forms  import RegisterForm, UniversityForm, ScholarshipForm, DocumentForm, TestScoreForm, ApplicationTaskForm, DocumentVersionForm
-
-def register_view(request):
-    if request.user.is_authenticated:
-        return redirect('dashboard')
-    form = RegisterForm(request.POST or None)
-    if form.is_valid():
-        user = form.save()
-        login(request, user)
-        messages.success(request, f'Welcome, {user.username}!')
-        return redirect('dashboard')
-    return render(request, 'applications/auth.html', {'form': form, 'mode': 'register'})
-
-def login_view(request):
-    if request.user.is_authenticated:
-        return redirect('dashboard')
-    form = AuthenticationForm(request, data=request.POST or None)
-    if form.is_valid():
-        user = form.get_user()
-        login(request, user)
-        return redirect(request.GET.get('next', 'dashboard'))
-    return render(request, 'applications/auth.html', {'form': form, 'mode': 'login'})
-
-def logout_view(request):
-    logout(request)
-    return redirect('login')
+from .forms  import UniversityForm, ScholarshipForm, DocumentForm, TestScoreForm, ApplicationTaskForm, DocumentVersionForm
 
 @login_required
 def dashboard(request):

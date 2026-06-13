@@ -86,13 +86,12 @@ def university_autocomplete(request):
 
     results = []
     seen = set()
-    for item in raw[:20]:  # cap at 20 API results before filtering
+    for item in raw[:20]:  
         name = item.get("name", "")
         country = item.get("country", "")
         pages = item.get("web_pages", [])
         website = pages[0] if pages else ""
 
-        # deduplicate by name+country
         key = f"{name.lower()}|{country.lower()}"
         if key in seen:
             continue
@@ -104,7 +103,7 @@ def university_autocomplete(request):
             "website": website,
         })
 
-        if len(results) >= 8:  # return max 8 suggestions
+        if len(results) >= 8: 
             break
 
     return JsonResponse(results, safe=False)

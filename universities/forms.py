@@ -23,13 +23,6 @@ def validate_pdf_and_size(file):
     
     return file
 
-class RegisterForm(UserCreationForm):
-    email = forms.EmailField(required=True)
-
-    class Meta:
-        model = User
-        fields = ['username', 'email', 'password1', 'password2']
-
 class UniversityForm(forms.ModelForm):
     class Meta:
         model = University

@@ -4,9 +4,6 @@ from .autocomplete import university_autocomplete
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
-    path('register/', views.register_view, name='register'),
-    path('login/', views.login_view, name='login'),
-    path('logout/', views.logout_view, name='logout'),
 
     path('universities/', views.university_list, name='university_list'),
     path('universities/add/', views.university_create, name='university_create'),
