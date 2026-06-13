@@ -71,6 +71,18 @@ This project demonstrates production-ready backend patterns including relational
 * Results are cached locally via **Redis** for 1 hour to optimize performance and prevent rate limiting.
 * Implements a **BeautifulSoup4** web scraper fallback to enrich metadata if needed.
 
+### 11. Weekly Email Digest
+* Every Monday at 08:00, each user receives a personalised summary email.
+* Covers upcoming deadlines within 7 days, active interviews, accepted offers,
+  universities missing documents, and pending tasks due that week.
+* Skips users with no activity to report — no empty emails sent.
+
+### 12. iCal Calendar Subscription
+* Each user gets a unique, secret calendar feed URL (`/calendar/<uuid>.ics`).
+* Plug the URL into Google Calendar, Apple Calendar, or Outlook for live deadline sync.
+* Feed excludes rejected applications and marks deferred/cancelled events accordingly.
+* URL can be regenerated instantly to revoke access if shared accidentally.
+
 ---
 
 ## 🛠️ Tech Stack
