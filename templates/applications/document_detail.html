@@ -15,7 +15,7 @@
         {% if doc.university %} · {{ doc.university.name }}{% endif %}
       </p>
     </div>
-    <a href="{% url 'documents' %}" class="btn btn-outline btn-sm">← Back</a>
+    <a href="{% url 'universities:documents' %}" class="btn btn-outline btn-sm">← Back</a>
   </div>
 
   <!-- Version history -->
@@ -46,7 +46,7 @@
             <span style="font-size:11px;padding:2px 8px;border-radius:20px;background:rgba(29,158,117,.15);color:#1D9E75;border:1px solid rgba(29,158,117,.25)">Latest</span>
           {% endif %}
           <a href="{{ v.file.url }}" target="_blank" class="btn btn-outline btn-sm">View</a>
-          <form method="post" action="{% url 'document_version_delete' v.pk %}" onsubmit="return confirm('Delete this version?')">
+          <form method="post" action="{% url 'universities:document_version_delete' v.pk %}" onsubmit="return confirm('Delete this version?')">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger btn-sm">🗑</button>
           </form>
@@ -61,7 +61,7 @@
     <!-- Upload new version -->
     <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:1.25rem">
       <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#444;margin-bottom:1rem">Upload new version</div>
-      <form method="post" enctype="multipart/form-data" action="{% url 'document_version_upload' doc.pk %}">
+      <form method="post" enctype="multipart/form-data" action="{% url 'universities:document_version_upload' doc.pk %}">
         {% csrf_token %}
         <div class="form-row">
           <div class="form-group">
@@ -104,7 +104,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
           <div>
             <div style="font-size:12px;font-family:monospace;color:#AFA9EC;word-break:break-all">
-              {{ request.scheme }}://{{ request.get_host }}{% url 'shared_document' link.token %}
+              {{ request.scheme }}://{{ request.get_host }}{% url 'universities:shared_document' link.token %}
             </div>
             <div style="font-size:11px;color:#555;margin-top:4px;display:flex;gap:12px">
               <span>Created {{ link.created_at|date:"M j" }}</span>
@@ -117,9 +117,9 @@
           </div>
           <div style="display:flex;gap:6px">
             <button
-              onclick="navigator.clipboard.writeText('{{ request.scheme }}://{{ request.get_host }}{% url 'shared_document' link.token %}').then(() => this.textContent = 'Copied!')"
+              onclick="navigator.clipboard.writeText('{{ request.scheme }}://{{ request.get_host }}{% url 'universities:shared_document' link.token %}').then(() => this.textContent = 'Copied!')"
               class="btn btn-outline btn-sm">Copy</button>
-            <form method="post" action="{% url 'share_link_revoke' link.pk %}">
+            <form method="post" action="{% url 'universities:share_link_revoke' link.pk %}">
               {% csrf_token %}
               <button type="submit" class="btn btn-danger btn-sm">Revoke</button>
             </form>
@@ -131,7 +131,7 @@
     {% endif %}
 
     <!-- Create new link -->
-    <form method="post" action="{% url 'share_link_create' doc.pk %}" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <form method="post" action="{% url 'universities:share_link_create' doc.pk %}" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       {% csrf_token %}
       <label style="font-size:13px;color:#888">Expires in</label>
       <select name="days" style="width:auto;padding:6px 12px;background:#1a1a18;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#e8e6f0;font-size:13px">

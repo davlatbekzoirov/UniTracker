@@ -6,7 +6,7 @@
   <h1 class="page-title">Dashboard</h1>
   <div style="display:flex;gap:8px">
     <a href="#" class="btn btn-outline btn-sm">&#9906; Filter</a>
-    <a href="{% url 'university_create' %}" class="btn btn-primary btn-sm">+ Add application</a>
+    <a href="{% url 'universities:university_create' %}" class="btn btn-primary btn-sm">+ Add application</a>
   </div>
 </div>
 
@@ -42,7 +42,7 @@
 <div class="card">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
     <span style="font-size:15px;font-weight:600;color:#e8e6f0">Recent applications</span>
-    <a href="{% url 'university_list' %}" class="btn btn-outline btn-sm">View all</a>
+    <a href="{% url 'universities:university_list' %}" class="btn btn-outline btn-sm">View all</a>
   </div>
   <div class="table-wrap">
     <table>
@@ -60,7 +60,7 @@
         <tr>
           <td>
             <div style="font-weight:600;font-size:14px">
-              <a href="{% url 'university_detail' uni.pk %}" style="color:#e8e6f0">{{ uni.name }}</a>
+              <a href="{% url 'universities:university_detail' uni.pk %}" style="color:#e8e6f0">{{ uni.name }}</a>
             </div>
             <div style="font-size:12px;color:#666;margin-top:2px">{{ uni.country }} · <span class="badge badge-{{ uni.tier|lower }}">{{ uni.tier }}</span></div>
           </td>
@@ -81,8 +81,8 @@
           <td><span class="badge badge-{{ uni.status|lower }}">{{ uni.get_status_display }}</span></td>
           <td>
             <div style="display:flex;gap:6px;justify-content:flex-end">
-              <a href="{% url 'university_edit' uni.pk %}" class="btn btn-outline btn-sm" title="Edit">✏</a>
-              <form method="post" action="{% url 'university_delete' uni.pk %}" style="display:inline" onsubmit="return confirm('Delete {{ uni.name }}?')">
+              <a href="{% url 'universities:university_edit' uni.pk %}" class="btn btn-outline btn-sm" title="Edit">✏</a>
+              <form method="post" action="{% url 'universities:university_delete' uni.pk %}" style="display:inline" onsubmit="return confirm('Delete {{ uni.name }}?')">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger btn-sm" title="Delete">🗑</button>
               </form>
@@ -93,7 +93,7 @@
         <tr>
           <td colspan="5" style="text-align:center;padding:2.5rem;color:#555">
             <div style="font-size:28px;margin-bottom:.5rem">📭</div>
-            <div style="font-size:14px">No applications yet. <a href="{% url 'university_create' %}">Add one</a></div>
+            <div style="font-size:14px">No applications yet. <a href="{% url 'universities:university_create' %}">Add one</a></div>
           </td>
         </tr>
         {% endfor %}
@@ -136,7 +136,7 @@
       </div>
       {% endif %}
     </div>
-    <a href="{% url 'scores' %}" class="btn btn-outline btn-sm" style="margin-top:1rem">Edit scores</a>
+    <a href="{% url 'universities:scores' %}" class="btn btn-outline btn-sm" style="margin-top:1rem">Edit scores</a>
   </div>
 </div>
 {% endif %}

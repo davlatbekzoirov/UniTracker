@@ -3,9 +3,7 @@ import os
 import uuid as _uuid
 from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q, Case, When, Value, CharField
@@ -114,7 +112,7 @@ def university_create(request):
         uni.user = request.user
         uni.save()
         messages.success(request, f'{uni.name} added.')
-        return redirect('university_list')
+        return redirect('universities:university_list')
     return render(request, 'applications/university_form.html', {'form': form, 'action': 'Add'})
 
 @login_required
@@ -124,7 +122,7 @@ def university_edit(request, pk):
     if form.is_valid():
         form.save()
         messages.success(request, 'Updated.')
-        return redirect('university_list')
+        return redirect('universities:university_list')
     return render(request, 'applications/university_form.html', {
         'form': form, 'action': 'Edit', 'uni': uni,
     })
@@ -135,7 +133,7 @@ def university_delete(request, pk):
     if request.method == 'POST':
         uni.delete()
         messages.success(request, f'{uni.name} removed.')
-        return redirect('university_list')
+        return redirect('universities:university_list')
     return render(request, 'applications/confirm_delete.html', {'obj': uni})
 
 @login_required
@@ -175,7 +173,7 @@ def scholarship_create(request, uni_pk):
         s.university = uni
         s.save()
         messages.success(request, 'Scholarship added.')
-        return redirect('university_detail', pk=uni_pk)
+        return redirect('universities:university_detail', pk=uni_pk)
     return render(request, 'applications/scholarship_form.html', {'form': form, 'uni': uni})
 
 @login_required
@@ -187,7 +185,7 @@ def documents(request):
         doc.user = request.user
         doc.save()
         messages.success(request, 'Document uploaded.')
-        return redirect('documents')
+        return redirect('universities:documents')
     return render(request, 'applications/documents.html', {'docs': docs, 'form': form})
 
 @login_required
@@ -197,7 +195,7 @@ def document_delete(request, pk):
         doc.file.delete(save=False)
         doc.delete()
         messages.success(request, 'Document removed.')
-    return redirect('documents')
+    return redirect('universities:documents')
 
 @login_required
 def scores_view(request):
@@ -211,7 +209,7 @@ def scores_view(request):
         obj.user = request.user
         obj.save()
         messages.success(request, 'Scores saved.')
-        return redirect('scores')
+        return redirect('universities:scores')
     return render(request, 'applications/scores.html', {'form': form, 'scores': scores})
 
 @require_POST
@@ -224,7 +222,7 @@ def task_toggle(request, pk):
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'status': task.status})
-    return redirect('university_detail', pk=task.university_id)
+    return redirect('universities:university_detail', pk=task.university_id)
 
 @require_POST
 @login_required
@@ -239,7 +237,7 @@ def task_update(request, pk):
     if form.is_valid():
         form.save()
         messages.success(request, 'Task updated.')
-    return redirect('university_detail', pk=task.university_id)
+    return redirect('universities:university_detail', pk=task.university_id)
 
 @require_POST
 @login_required
@@ -252,7 +250,7 @@ def task_delete(request, pk):
     uni_pk = task.university_id
     task.delete()
     messages.success(request, 'Task removed.')
-    return redirect('university_detail', pk=uni_pk)
+    return redirect('universities:university_detail', pk=uni_pk)
 
 @require_POST
 @login_required
@@ -266,7 +264,7 @@ def task_create(request, uni_pk):
         messages.success(request, 'Task added.')
     else:
         messages.error(request, f'Error: {form.errors}')
-    return redirect('university_detail', pk=uni_pk)
+    return redirect('universities:university_detail', pk=uni_pk)
 
 @require_POST
 @login_required
@@ -285,7 +283,7 @@ def task_regenerate(request, uni_pk):
     uni.tasks.filter(status='pending', title__in=template_titles).delete()
     generate_tasks_for_university(uni)
     messages.success(request, 'Checklist refreshed.')
-    return redirect('university_detail', pk=uni_pk)
+    return redirect('universities:university_detail', pk=uni_pk)
 
 @login_required
 def document_version_upload(request, doc_pk):
@@ -297,7 +295,7 @@ def document_version_upload(request, doc_pk):
         v.uploaded_by = request.user
         v.save()
         messages.success(request, f'"{v.label}" uploaded.')
-        return redirect('document_detail', pk=doc_pk)
+        return redirect('universities:document_detail', pk=doc_pk)
     return render(request, 'applications/document_version_upload.html', {
         'form': form, 'doc': doc,
     })
@@ -310,7 +308,7 @@ def document_version_delete(request, pk):
         version.file.delete(save=False)
         version.delete()
         messages.success(request, 'Version removed.')
-    return redirect('document_detail', pk=doc_pk)
+    return redirect('universities:document_detail', pk=doc_pk)
 
 @login_required
 def document_detail(request, pk):
@@ -334,7 +332,7 @@ def share_link_create(request, doc_pk):
         expires_at = timezone.now() + timezone.timedelta(days=days),
     )
     messages.success(request, f'Share link created — expires in {days} day(s).')
-    return redirect('document_detail', pk=doc_pk)
+    return redirect('universities:document_detail', pk=doc_pk)
 
 @login_required
 @require_POST
@@ -343,7 +341,7 @@ def share_link_revoke(request, pk):
     link.is_active = False
     link.save(update_fields=['is_active'])
     messages.success(request, 'Share link revoked.')
-    return redirect('document_detail', pk=link.document_id)
+    return redirect('universities:document_detail', pk=link.document_id)
 
 def shared_document_view(request, token):
     link = get_object_or_404(ShareLink, token=token)
@@ -377,7 +375,7 @@ def calendar_token_regenerate(request):
     token.token = _uuid.uuid4()
     token.save(update_fields=['token'])
     messages.success(request, 'Calendar URL regenerated. Update the link in your calendar app.')
-    return redirect('calendar_feed_info')
+    return redirect('universities:calendar_feed_info')
 
 def ical_feed(request, token):
     """Public iCal endpoint — no login needed, protected by the UUID token."""

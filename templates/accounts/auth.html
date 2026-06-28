@@ -43,8 +43,8 @@
   </div>
 
   <p style="text-align:center;font-size:14px;color:#888;margin-top:1.25rem">
-    {% if mode == 'login' %}No account? <a href="{% url 'register' %}" style="color:#534AB7;font-weight:600">Register</a>
-    {% else %}Have an account? <a href="{% url 'login' %}" style="color:#534AB7;font-weight:600">Sign in</a>{% endif %}
+    {% if mode == 'login' %}No account? <a href="{% url 'universities:register' %}" style="color:#534AB7;font-weight:600">Register</a>
+    {% else %}Have an account? <a href="{% url 'universities:login' %}" style="color:#534AB7;font-weight:600">Sign in</a>{% endif %}
   </p>
 </div>
 {% endblock %}

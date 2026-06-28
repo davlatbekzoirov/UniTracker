@@ -25,15 +25,15 @@
 
   <div style="display: flex; gap: 8px; align-items: center;">
   
-    <a href="{% url 'university_edit' uni.pk %}" class="btn btn-outline btn-sm">
+    <a href="{% url 'universities:university_edit' uni.pk %}" class="btn btn-outline btn-sm">
       Edit
     </a>
 
-    <a href="{% url 'scholarship_create' uni.pk %}" class="btn btn-primary btn-sm">
+    <a href="{% url 'universities:scholarship_create' uni.pk %}" class="btn btn-primary btn-sm">
       + Add Scholarship
     </a>
 
-    <a href="{% url 'university_delete' uni.pk %}" 
+    <a href="{% url 'universities:university_delete' uni.pk %}" 
       class="btn btn-sm"
       style="background: rgba(255, 0, 80, 0.1); color: #ff4d6d; border: 1px solid rgba(255, 0, 80, 0.3);">
       Delete
@@ -149,7 +149,7 @@
       <span style="width:7px;height:7px;background:#00ff87;border-radius:50%;flex-shrink:0;"></span>
       Application milestone checklist
     </h2>
-    <form action="{% url 'task_regenerate' uni.pk %}" method="POST" style="margin:0;">
+    <form action="{% url 'universities:task_regenerate' uni.pk %}" method="POST" style="margin:0;">
       {% csrf_token %}
       <button type="submit" class="btn btn-outline btn-sm">↺ Refresh checklist</button>
     </form>
@@ -173,7 +173,7 @@
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
           <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:200px;">
 
-            <form action="{% url 'task_toggle' task.pk %}" method="POST" class="js-toggle-form" style="margin:0;">
+            <form action="{% url 'universities:task_toggle' task.pk %}" method="POST" class="js-toggle-form" style="margin:0;">
               {% csrf_token %}
               <button type="submit" class="cl-toggle-btn {% if task.is_done %}state-done{% elif task.status == 'in_progress' %}state-inprog{% else %}state-pending{% endif %}"
                 style="width:28px;height:28px;border-radius:8px;border:1px solid;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:all 0.15s;flex-shrink:0;
@@ -207,7 +207,7 @@
               {{ task.get_status_display }}
             </span>
 
-            <form action="{% url 'task_delete' task.pk %}" method="POST" style="margin:0;" onsubmit="return confirm('Remove this milestone?');">
+            <form action="{% url 'universities:task_delete' task.pk %}" method="POST" style="margin:0;" onsubmit="return confirm('Remove this milestone?');">
               {% csrf_token %}
               <button type="submit" style="background:none;border:none;color:rgba(255,255,255,0.18);cursor:pointer;padding:4px 6px;border-radius:6px;font-size:14px;transition:all 0.2s;" onmouseover="this.style.color='#ff4d6d';this.style.background='rgba(255,0,80,0.08)'" onmouseout="this.style.color='rgba(255,255,255,0.18)';this.style.background='none'">
                 ✕
@@ -228,7 +228,7 @@
     <div class="card" style="text-align:center; padding:3rem 1.5rem; border:1px dashed var(--border-glow); background:rgba(255,255,255,0.01);">
       <div style="font-size:28px; margin-bottom:12px;">📋</div>
       <p style="color: var(--text-muted); font-size:14px; margin-bottom:14px;">No tasks yet.</p>
-      <form action="{% url 'task_regenerate' uni.pk %}" method="POST" style="display:inline-block;">
+      <form action="{% url 'universities:task_regenerate' uni.pk %}" method="POST" style="display:inline-block;">
         {% csrf_token %}
         <button type="submit" class="btn btn-outline btn-sm">Generate Tasks</button>
       </form>
@@ -238,7 +238,7 @@
   <div class="card" style="margin-top:12px; padding:1rem 1.25rem; background:rgba(255,255,255,0.01); border:1px dashed rgba(255,255,255,0.07); border-radius:14px;">
     <details>
       <summary style="font-size:13px; color:#00f2fe; font-weight:500; cursor:pointer; user-select:none;">+ Add milestone task</summary>
-      <form action="{% url 'task_create' uni.pk %}" method="POST" style="margin-top:1rem; display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; align-items:flex-end;">
+      <form action="{% url 'universities:task_create' uni.pk %}" method="POST" style="margin-top:1rem; display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; align-items:flex-end;">
         {% csrf_token %}
         <input type="hidden" name="status" value="pending">
         <input type="hidden" name="order" value="0">
@@ -315,7 +315,7 @@
   {% else %}
     <div class="card" style="padding: 2rem; border: 1px dashed var(--border-glow); background: rgba(255,255,255,0.01); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px;">
       <p style="color: var(--text-muted); font-size: 14px; margin: 0;">No documents uploaded yet.</p>
-      <a href="{% url 'documents' %}" class="btn btn-primary btn-sm">
+      <a href="{% url 'universities:documents' %}" class="btn btn-primary btn-sm">
         Upload Document
       </a>
     </div>

@@ -231,13 +231,13 @@
   <nav class="nav">
     <span class="nav-brand">UniTracker</span>
     <div class="nav-links">
-      <a href="{% url 'dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}class="active"{% endif %}>Dashboard</a>
-      <a href="{% url 'university_list' %}" {% if 'university' in request.resolver_match.url_name %}class="active"{% endif %}>Universities</a>
-      <a href="{% url 'scholarship_list' %}" {% if 'scholarship' in request.resolver_match.url_name %}class="active"{% endif %}>Scholarships</a>
-      <a href="{% url 'documents' %}" {% if request.resolver_match.url_name == 'documents' %}class="active"{% endif %}>Documents</a>
-      <a href="{% url 'scores' %}" {% if request.resolver_match.url_name == 'scores' %}class="active"{% endif %}>Scores</a>
+      <a href="{% url 'universities:dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}class="active"{% endif %}>Dashboard</a>
+      <a href="{% url 'universities:university_list' %}" {% if 'university' in request.resolver_match.url_name %}class="active"{% endif %}>Universities</a>
+      <a href="{% url 'universities:scholarship_list' %}" {% if 'scholarship' in request.resolver_match.url_name %}class="active"{% endif %}>Scholarships</a>
+      <a href="{% url 'universities:documents' %}" {% if request.resolver_match.url_name == 'documents' %}class="active"{% endif %}>Documents</a>
+      <a href="{% url 'universities:scores' %}" {% if request.resolver_match.url_name == 'scores' %}class="active"{% endif %}>Scores</a>
       
-      <a href="{% url 'calendar_feed_info' %}" {% if 'calendar' in request.resolver_match.url_name %}class="active"{% endif %}>Calendar</a>
+      <a href="{% url 'universities:calendar_feed_info' %}" {% if 'calendar' in request.resolver_match.url_name %}class="active"{% endif %}>Calendar</a>
     </div>
     <div class="nav-user">{{ user.username }} · <a href="{% url 'logout' %}">Sign out</a></div>
   </nav>

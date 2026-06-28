@@ -2,6 +2,8 @@ from django.urls import path
 from . import views
 from .autocomplete import university_autocomplete
 
+app_name = "universities"
+
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
 
