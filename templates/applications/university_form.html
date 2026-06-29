@@ -11,7 +11,7 @@
       </div>
       <h1 class="page-title">{{ action }} university</h1>
     </div>
-    <a href="{% url 'university_list' %}" class="btn btn-outline btn-sm" style="gap:6px">
+    <a href="{% url 'universities:university_list' %}" class="btn btn-outline btn-sm" style="gap:6px">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
       Back
     </a>
@@ -100,7 +100,7 @@
 
       <!-- Actions -->
       <div style="padding:16px 24px;display:flex;justify-content:space-between;align-items:center">
-        <a href="{% url 'university_list' %}" class="btn btn-outline btn-sm" style="color:#555">Cancel</a>
+        <a href="{% url 'universities:university_list' %}" class="btn btn-outline btn-sm" style="color:#555">Cancel</a>
         <button type="submit" class="btn btn-primary">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg>
           {{ action }} university
@@ -130,7 +130,7 @@
     debounceTimer = setTimeout(async () => {
       if (query.length < 2) { closeDropdown(); return; }
       try {
-        const resp = await fetch(`{% url 'university_autocomplete' %}?q=${encodeURIComponent(query)}`);
+        const resp = await fetch(`{% url 'universities:university_autocomplete' %}?q=${encodeURIComponent(query)}`);
         if (!resp.ok) return;
         currentResults = await resp.json();
         renderDropdown();

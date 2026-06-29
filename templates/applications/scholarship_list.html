@@ -30,7 +30,7 @@
         <tr>
           <td style="font-weight:600;font-size:13px;color:#e2e0d8">{{ s.name }}</td>
           <td>
-            <a href="{% url 'university_detail' s.university.pk %}" style="font-size:13px;color:#7F77DD;text-decoration:none">{{ s.university.name }}</a>
+            <a href="{% url 'universities:university_detail' s.university.pk %}" style="font-size:13px;color:#7F77DD;text-decoration:none">{{ s.university.name }}</a>
           </td>
           <td style="font-size:13px;font-weight:500;color:#e2e0d8">
             {% if s.amount %}{{ s.currency }} {{ s.amount }}{% else %}<span style="color:#444">—</span>{% endif %}

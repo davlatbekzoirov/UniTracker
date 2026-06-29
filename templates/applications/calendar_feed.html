@@ -67,7 +67,7 @@
       If you shared this link with someone and want to revoke their access,
       generate a new URL. Your old URL will stop working immediately.
     </p>
-    <form method="post" action="{% url 'calendar_token_regenerate' %}"
+    <form method="post" action="{% url 'universities:calendar_token_regenerate' %}"
           onsubmit="return confirm('This will break your existing calendar subscriptions. Continue?')">
       {% csrf_token %}
       <button type="submit" class="btn btn-outline btn-sm" style="color:#E24B4A;border-color:rgba(226,75,74,.3)">
